@@ -5,12 +5,12 @@ import 'firebase/compat/auth';
 
 // --- Configuration ---
 const firebaseConfig = {
-    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyABJZRDkwNTs0Ujs2wpnSSmNMlY4uinKNo",
-    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "francisco-61572.firebaseapp.com",
-    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "francisco-61572",
-    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "francisco-61572.firebasestorage.app",
-    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "333100224160",
-    appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:333100224160:web:4887376c6c59b66c433a75"
+    apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBGrIB0_NxfaQfvajUG44jm3V7-EZ62Wqs",
+    authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "turn-45eea.firebaseapp.com",
+    projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "turn-45eea",
+    storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "turn-45eea.firebasestorage.app",
+    messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "173251953667",
+    appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:173251953667:web:fad45aaa1826aa4a9aba36"
 };
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3010'; // Dynamically switch API URL
