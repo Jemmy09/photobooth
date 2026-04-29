@@ -1,5 +1,5 @@
 import './style.css';
-import { createIcons, Menu, Camera, Users, LogOut, Bell, User, MapPin, X, Check, Heart, Share2 } from 'lucide';
+import { createIcons, Menu, Camera, Users, LogOut, Bell, User, MapPin, X, Check, Heart, Share2, Film, LayoutGrid } from 'lucide';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 
@@ -76,7 +76,7 @@ function setupEventListeners() {
 
 function refreshIcons() {
     createIcons({
-        icons: { Menu, Camera, Users, LogOut, Bell, User, MapPin, X, Check, Heart, Share2 }
+        icons: { Menu, Camera, Users, LogOut, Bell, User, MapPin, X, Check, Heart, Share2, Film, LayoutGrid }
     });
 }
 
@@ -105,30 +105,58 @@ function showView(view) {
 function renderDynamicView(view) {
     if (view === 'booth') {
         contentElement.innerHTML = `
-            <div class="fade-in mt-2">
-                <header class="flex-center mb-2" style="justify-content: space-between;">
+            <div class="fade-in mt-2 flex-center" style="flex-direction: column;">
+                <header class="flex-center mb-1" style="justify-content: space-between; width: 100%; max-width: 800px;">
                    <div>
-                      <h1 style="font-family: 'Outfit', sans-serif;">PhotoBooth</h1>
-                      <p class="text-muted">Capture the moment</p>
+                      <h1 style="font-family: 'Outfit', sans-serif;">Studio</h1>
+                      <p class="text-muted" style="font-size: 0.9rem;">Strike a pose</p>
                    </div>
-                   <button data-link="dashboard" class="btn btn-secondary"><i data-lucide="x"></i></button>
+                   <button data-link="dashboard" class="btn btn-secondary" style="border-radius: 50%; padding: 0.5rem;"><i data-lucide="x"></i></button>
                 </header>
 
-                <div class="glass-card" style="padding: 1rem; max-width: 800px; margin: 0 auto;">
-                    <div class="camera-preview mb-1">
-                        <video id="camera-feed" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
-                        <div id="countdown" class="flex-center" style="position: absolute; inset: 0; font-size: 8rem; font-weight: 800; color: white; display: none; text-shadow: 0 0 20px rgba(0,0,0,0.5);">3</div>
+                <div class="glass-card" style="padding: 1rem; width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 1.5rem; border-radius: 30px;">
+                    
+                    <div class="camera-preview" style="position: relative; border-radius: 20px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);">
+                        <video id="camera-feed" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+                        <div id="countdown" class="flex-center" style="position: absolute; inset: 0; font-family: 'Outfit', sans-serif; font-size: 10rem; font-weight: 800; color: white; display: none; text-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(5px);">3</div>
                         <canvas id="photo-canvas" style="display: none;"></canvas>
+                        
+                        <!-- Grid Overlay -->
+                        <div style="position: absolute; inset: 0; pointer-events: none; display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr;">
+                           <div style="border-right: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
+                           <div style="border-right: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
+                           <div style="border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
+                           <div style="border-right: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
+                           <div style="border-right: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
+                           <div style="border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
+                           <div style="border-right: 1px solid rgba(255,255,255,0.1);"></div>
+                           <div style="border-right: 1px solid rgba(255,255,255,0.1);"></div>
+                           <div></div>
+                        </div>
                     </div>
 
-                    <div id="captured-strips" class="flex-center mb-1" style="gap: 0.5rem; flex-wrap: wrap;"></div>
+                    <div id="captured-strips" class="flex-center" style="gap: 0.5rem; flex-wrap: wrap;"></div>
 
-                    <div class="flex-center" style="gap: 1rem;">
-                        <button id="shutter-btn" class="shutter-btn"></button>
-                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
-                            <button id="mode-strip" class="btn btn-secondary active" style="font-size: 0.8rem;">Classic Strip</button>
-                            <button id="mode-postcard" class="btn btn-secondary" style="font-size: 0.8rem;">Postcard</button>
+                    <!-- Controls Section -->
+                    <div class="flex-center" style="flex-direction: column; gap: 1.5rem; width: 100%;">
+                        
+                        <!-- Mode Selector (Pill Shape) -->
+                        <div style="display: flex; background: rgba(0,0,0,0.4); padding: 0.25rem; border-radius: 40px; border: 1px solid var(--border);">
+                            <button id="mode-strip" class="btn active" style="border: none; background: var(--primary); color: white; border-radius: 30px; padding: 0.5rem 1.5rem; font-size: 0.85rem; box-shadow: var(--shadow-sm); transition: all 0.3s;">
+                                <i data-lucide="film" style="width: 16px; height: 16px;"></i> Strip
+                            </button>
+                            <button id="mode-postcard" class="btn" style="border: none; background: transparent; color: var(--text-muted); border-radius: 30px; padding: 0.5rem 1.5rem; font-size: 0.85rem; transition: all 0.3s;">
+                                <i data-lucide="layout-grid" style="width: 16px; height: 16px;"></i> Postcard
+                            </button>
                         </div>
+
+                        <!-- Shutter Button -->
+                        <div class="flex-center" style="position: relative; width: 100%;">
+                            <button id="shutter-btn" style="width: 76px; height: 76px; border-radius: 50%; background: white; border: 4px solid var(--glass-border); padding: 3px; cursor: pointer; outline: none; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(0,0,0,0.3);">
+                                <div id="shutter-inner" style="width: 100%; height: 100%; border-radius: 50%; background: #ffffff; border: 1px solid #e2e8f0; transition: background 0.1s;"></div>
+                            </button>
+                        </div>
+                        
                     </div>
                 </div>
             </div>
@@ -206,6 +234,38 @@ async function initBooth() {
             startCaptureSequence();
         }
     };
+    
+    // Custom Shutter Press Effect
+    const shutterInner = document.getElementById('shutter-inner');
+    if (shutterInner) {
+        shutter.addEventListener('mousedown', () => shutterInner.style.background = '#e2e8f0');
+        shutter.addEventListener('mouseup', () => shutterInner.style.background = '#ffffff');
+        shutter.addEventListener('touchstart', () => shutterInner.style.background = '#e2e8f0');
+        shutter.addEventListener('touchend', () => shutterInner.style.background = '#ffffff');
+    }
+
+    // Mode Toggle Logic
+    const btnStrip = document.getElementById('mode-strip');
+    const btnPostcard = document.getElementById('mode-postcard');
+    
+    if (btnStrip && btnPostcard) {
+        btnStrip.onclick = () => {
+            btnStrip.classList.add('active');
+            btnPostcard.classList.remove('active');
+            btnStrip.style.background = 'var(--primary)';
+            btnStrip.style.color = 'white';
+            btnPostcard.style.background = 'transparent';
+            btnPostcard.style.color = 'var(--text-muted)';
+        };
+        btnPostcard.onclick = () => {
+            btnPostcard.classList.add('active');
+            btnStrip.classList.remove('active');
+            btnPostcard.style.background = 'var(--primary)';
+            btnPostcard.style.color = 'white';
+            btnStrip.style.background = 'transparent';
+            btnStrip.style.color = 'var(--text-muted)';
+        };
+    }
 }
 
 async function startCaptureSequence() {
