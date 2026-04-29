@@ -485,6 +485,7 @@ async function startSessionPolling(sessionId) {
 }
 
 // Notification Polling
+let unreadNotifCount = 0;
 setInterval(async () => {
     if (currentUser) {
         try {
@@ -492,8 +493,10 @@ setInterval(async () => {
                 headers: { 'Authorization': `Bearer ${await currentUser.getIdToken()}` }
             });
             const notifications = await res.json();
+            let newCount = 0;
             notifications.forEach(n => {
                 if (!localStorage.getItem(`notif_${n.id}`)) {
+                    newCount++;
                     if (n.type === 'booth_invite') {
                         showBoothInvite(n);
                     } else {
@@ -502,6 +505,19 @@ setInterval(async () => {
                     localStorage.setItem(`notif_${n.id}`, 'true');
                 }
             });
+            // Update nav badge
+            unreadNotifCount += newCount;
+            const badge = document.getElementById('nav-notification-badge');
+            if (badge) {
+                if (unreadNotifCount > 0) {
+                    badge.textContent = unreadNotifCount > 9 ? '9+' : unreadNotifCount;
+                    badge.classList.remove('hidden');
+                    badge.style.display = 'flex';
+                } else {
+                    badge.classList.add('hidden');
+                    badge.style.display = 'none';
+                }
+            }
         } catch (e) {}
     }
 }, 5000);
@@ -642,30 +658,69 @@ function initFriends() {
     const searchInput = document.getElementById('friend-search');
     if (searchInput) {
         searchInput.oninput = debounce(async (e) => {
-            const query = e.target.value;
-            if (query.length < 3) return;
-            
-            const res = await fetch(`${API_BASE_URL}/api/users/search?query=${query}`, {
-                headers: { 'Authorization': `Bearer ${await currentUser.getIdToken()}` }
-            });
-            const users = await res.json();
-            renderSearchResults(users);
-        }, 500);
+            const query = e.target.value.trim();
+            if (query.length < 1) {
+                // Reset to all users if search is cleared
+                fetchAllUsers();
+                return;
+            }
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/users/search?query=${encodeURIComponent(query)}`, {
+                    headers: { 'Authorization': `Bearer ${await currentUser.getIdToken()}` }
+                });
+                const users = await res.json();
+                renderSearchResults(users);
+            } catch(e) {
+                console.error('Search error:', e);
+            }
+        }, 400);
     }
     fetchFriends();
+    fetchAllUsers();
+}
+
+async function fetchAllUsers() {
+    if (!currentUser) return;
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/users/search?query=`, {
+            headers: { 'Authorization': `Bearer ${await currentUser.getIdToken()}` }
+        });
+        const users = await res.json();
+        renderSearchResults(users);
+    } catch(e) {
+        console.error('Error fetching all users:', e);
+    }
 }
 
 function renderSearchResults(users) {
     const container = document.getElementById('search-results');
-    container.innerHTML = users.map(u => `
-        <div class="glass-card" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem;">
+    if (!container) return;
+
+    if (!users || users.length === 0) {
+        container.innerHTML = `<p class="text-muted" style="text-align:center; padding: 1rem;">No users found.</p>`;
+        return;
+    }
+
+    container.innerHTML = users.map(u => {
+        const initials = (u.display_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        const avatarBg = `hsl(${Math.abs(u.uid.charCodeAt(0) * 37) % 360}, 60%, 40%)`;
+        const avatar = u.photo_url
+            ? `<img src="${u.photo_url}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+               <div style="display:none; width: 46px; height: 46px; border-radius: 50%; background: ${avatarBg}; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0;">${initials}</div>`
+            : `<div style="display:flex; width: 46px; height: 46px; border-radius: 50%; background: ${avatarBg}; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0;">${initials}</div>`;
+
+        return `
+        <div class="glass-card" style="display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 1rem; transition: border-color 0.2s;">
             <div style="display: flex; align-items: center; gap: 1rem;">
-                <img src="${u.photo_url}" style="width: 40px; height: 40px; border-radius: 50%;">
-                <span>${u.display_name}</span>
+                ${avatar}
+                <div>
+                    <p style="font-weight: 600; margin: 0;">${u.display_name || 'Unknown User'}</p>
+                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">${u.email || ''}</p>
+                </div>
             </div>
-            <button onclick="followUser('${u.uid}')" class="btn btn-primary" style="padding: 0.5rem 1rem;">Follow</button>
-        </div>
-    `).join('');
+            <button onclick="followUser('${u.uid}')" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px; flex-shrink: 0;">Follow</button>
+        </div>`;
+    }).join('');
 }
 
 // --- Utilities ---

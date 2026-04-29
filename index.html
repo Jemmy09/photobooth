@@ -22,6 +22,10 @@
             <a href="#" data-link="dashboard" class="nav-link">Dashboard</a>
             <a href="#" data-link="friends" class="nav-link">Friends</a>
             <a href="#" data-link="profile" class="nav-link">Profile</a>
+            <div style="position: relative; display: flex; align-items: center; cursor: pointer; margin-left: 0.5rem; margin-right: 0.5rem;" title="Notifications">
+              <i data-lucide="bell" style="width: 20px; height: 20px; color: var(--text-muted); transition: color 0.2s;"></i>
+              <span id="nav-notification-badge" class="hidden" style="position: absolute; top: -6px; right: -6px; background: var(--accent); color: white; border-radius: 50%; width: 16px; height: 16px; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; box-shadow: 0 0 5px rgba(0,0,0,0.5);"></span>
+            </div>
             <a href="#" id="logout-btn" class="nav-link logout-link">Logout</a>
           </div>
           <!-- Mobile Menu Toggle -->
