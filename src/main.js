@@ -1,5 +1,5 @@
 import './style.css';
-import { createIcons, Menu, Camera, Users, LogOut, Bell, User, MapPin, X, Check, Heart, Share2 } from 'lucide-static';
+import { createIcons, Menu, Camera, Users, LogOut, Bell, User, MapPin, X, Check, Heart, Share2 } from 'lucide';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 

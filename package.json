@@ -13,6 +13,6 @@
   },
   "dependencies": {
     "firebase": "^12.12.1",
-    "lucide-static": "^1.11.0"
+    "lucide": "^1.12.0"
   }
 }
