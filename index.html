@@ -5,6 +5,9 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>PhotoBooth | Capture & Connect</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <meta name="description" content="Capture stunning photobooth-style prints and connect with friends anywhere in the world." />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -157,9 +160,18 @@
 
     <template id="view-dashboard">
       <div class="fade-in mt-2">
-        <header class="mb-2">
-          <h1 style="font-family: 'Outfit', sans-serif; font-size: 2.5rem;">Hello, <span id="user-name">Explorer</span>!</h1>
-          <p class="text-muted">Ready for your next photoshoot?</p>
+        <header class="mb-2" style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <h1 style="font-family: 'Outfit', sans-serif; font-size: 2.5rem;">Hello, <span id="user-name">Explorer</span>! <span style="font-size: 0.65rem; color: #10b981; font-weight: 600; vertical-align: middle; margin-left: 0.5rem; background: rgba(16, 185, 129, 0.1); padding: 2px 8px; border-radius: 20px;">v1.2.2</span></h1>
+            <p class="text-muted">Ready for your next photoshoot?</p>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <button data-link="profile" class="btn-icon" style="background: rgba(255,255,255,0.05);"><i data-lucide="user"></i></button>
+            <button data-link="notifications" class="btn-icon" style="background: rgba(255,255,255,0.05); position: relative;">
+              <i data-lucide="bell"></i>
+              <span id="nav-notification-badge" class="badge hidden"></span>
+            </button>
+          </div>
         </header>
 
         <div class="grid-2">
@@ -306,6 +318,6 @@
       </div>
     </template>
 
-    <script type="module" src="/src/app.js?v=1.2.0"></script>
+    <script type="module" src="/src/app.js?v=1.2.2"></script>
   </body>
 </html>

@@ -875,9 +875,11 @@ function renderSearchResults(users) {
     container.innerHTML = users.map(u => {
         let btnHtml = `<button onclick="followUser('${u.uid}', this)" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px;">Send Friend Request</button>`;
         
-        if (u.follow_status === 'pending') {
+        if (u.sent_status === 'pending') {
             btnHtml = `<button onclick="cancelRequest('${u.uid}', this)" class="btn btn-retract-now" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px;">Retract Request</button>`;
-        } else if (u.follow_status === 'accepted') {
+        } else if (u.received_status === 'pending') {
+            btnHtml = `<button onclick="respondFollowRequest('${u.uid}', 'accept', this)" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px;">Accept Friend</button>`;
+        } else if (u.sent_status === 'accepted' || u.received_status === 'accepted') {
             btnHtml = `<button onclick="unfollowUser('${u.uid}', this)" class="btn btn-icon" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px; background: rgba(244, 63, 94, 0.1); color: var(--accent); border: 1px solid rgba(244, 63, 94, 0.2);">Unfriend</button>`;
         }
 
