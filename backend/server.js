@@ -125,10 +125,13 @@ app.post('/api/profile/sync', authenticateUser, async (req, res) => {
       INSERT INTO profiles (uid, display_name, email, photo_url, location_lat, location_lng, last_seen)
       VALUES ($1, $2, $3, $4, $5, $6, CURRENT_TIMESTAMP)
       ON CONFLICT (uid) DO UPDATE SET
-        display_name = EXCLUDED.display_name,
-        photo_url = EXCLUDED.photo_url,
-        location_lat = EXCLUDED.location_lat,
-        location_lng = EXCLUDED.location_lng,
+        display_name = COALESCE(EXCLUDED.display_name, profiles.display_name),
+        photo_url = CASE 
+          WHEN EXCLUDED.photo_url IS NOT NULL AND LENGTH(EXCLUDED.photo_url) > 20 THEN EXCLUDED.photo_url 
+          ELSE profiles.photo_url 
+        END,
+        location_lat = COALESCE(EXCLUDED.location_lat, profiles.location_lat),
+        location_lng = COALESCE(EXCLUDED.location_lng, profiles.location_lng),
         last_seen = CURRENT_TIMESTAMP
     `, [uid, name, email, photoURL, lat, lng]);
     res.json({ success: true });
