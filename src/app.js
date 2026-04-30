@@ -1,5 +1,4 @@
 import './style.css';
-import { createIcons, Menu, Camera, Users, LogOut, Bell, User, MapPin, X, Check, Heart, Share2, Film, LayoutGrid } from 'lucide';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 
@@ -94,9 +93,9 @@ function setupEventListeners() {
 }
 
 function refreshIcons() {
-    createIcons({
-        icons: { Menu, Camera, Users, LogOut, Bell, User, MapPin, X, Check, Heart, Share2, Film, LayoutGrid }
-    });
+    if (window.lucide) {
+        window.lucide.createIcons();
+    }
 }
 
 // --- Routing & Views ---
@@ -1310,113 +1309,7 @@ async function fetchNotifications() {
     }
 }
 
-async function initNotifications() {
-    const listContainer = document.getElementById('notifications-list');
-    if (!listContainer) return;
-    
-    listContainer.innerHTML = '<div class="flex-center" style="padding: 2rem;"><div class="loader"></div></div>';
-    
-    const notifications = await fetchNotifications();
-    
-    if (!notifications || notifications.length === 0) {
-        listContainer.innerHTML = `
-            <div class="glass-card flex-center" style="flex-direction: column; padding: 3rem; text-align: center; border-style: dashed;">
-                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
-                    <i data-lucide="bell-off" style="width: 32px; height: 32px; color: var(--text-muted);"></i>
-                </div>
-                <p style="font-weight: 600; color: var(--text-main);">All caught up!</p>
-                <p class="text-muted" style="font-size: 0.9rem;">No new notifications right now.</p>
-            </div>
-        `;
-        return;
-    }
-
-    listContainer.innerHTML = notifications.map(n => {
-        const time = new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const isRead = n.read;
-        const avatarBg = `hsl(${Math.abs(n.sender_uid.charCodeAt(0) * 37) % 360}, 30%, 20%)`;
-        
-        let content = '';
-        let actions = '';
-        let icon = 'bell';
-        let iconColor = 'var(--primary)';
-
-        if (n.type === 'follow_request') {
-            content = `<strong>${n.sender_name}</strong> sent you a friend request.`;
-            icon = 'user-plus';
-            actions = `
-                <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
-                    <button onclick="handleNotificationAction('${n.sender_uid}', 'accept', ${n.id})" class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.8rem;">Accept</button>
-                    <button onclick="handleNotificationAction('${n.sender_uid}', 'reject', ${n.id})" class="btn btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.8rem;">Ignore</button>
-                </div>
-            `;
-        } else if (n.type === 'follow_accept') {
-            content = `<strong>${n.sender_name}</strong> accepted your friend request!`;
-            icon = 'heart';
-            iconColor = '#ec4899';
-        }
-
-        return `
-            <div class="notification-item ${isRead ? 'read' : 'unread'}">
-                <div style="position: relative; flex-shrink: 0;">
-                    ${n.sender_photo && n.sender_photo.length > 50 
-                        ? `<img src="${n.sender_photo}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">`
-                        : `<div style="width: 48px; height: 48px; border-radius: 50%; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; color: var(--text-muted);"><i data-lucide="user" style="width: 24px; height: 24px;"></i></div>`
-                    }
-                    <div style="position: absolute; bottom: -4px; right: -4px; width: 20px; height: 20px; background: var(--bg-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg-card);">
-                        <i data-lucide="${icon}" style="width: 10px; height: 10px; color: ${iconColor};"></i>
-                    </div>
-                </div>
-                <div class="notification-info">
-                    <p class="notification-text"><span class="notification-name">${n.sender_name}</span> ${messageText}</p>
-                    <span style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;">${time}</span>
-                    ${n.type === 'follow_request' ? `
-                        <div class="notification-actions" style="margin-top: 0.75rem;">
-                            <button onclick="handleNotificationAction('${n.sender_uid}', 'accept', ${n.id})" class="btn-social-accept">Confirm</button>
-                            <button onclick="handleNotificationAction('${n.sender_uid}', 'reject', ${n.id})" class="btn-social-reject">Delete</button>
-                        </div>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    // Mark as read after 2 seconds
-    setTimeout(async () => {
-        try {
-            const token = await currentUser.getIdToken();
-            await fetch(`${API_BASE_URL}/api/notifications/read`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            fetchNotifications(); // Update badge
-        } catch (e) {}
-    }, 2000);
-
-    refreshIcons();
-}
-
-window.handleNotificationAction = async (senderUid, action, notificationId) => {
-    showToast(`${action === 'accept' ? 'Accepting' : 'Ignoring'} request...`, "info");
-    try {
-        const token = await currentUser.getIdToken();
-        const res = await fetch(`${API_BASE_URL}/api/follow/respond/${senderUid}`, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({ action })
-        });
-        
-        if (res.ok) {
-            showToast(action === 'accept' ? "Friend request accepted!" : "Request ignored", "success");
-            initNotifications(); // Refresh list
-        }
-    } catch (e) {
-        showToast("Action failed", "error");
-    }
-};
+// Duplicates removed
 
 window.clearAllNotifications = async () => {
     if (!confirm("Clear all notifications?")) return;
