@@ -1354,24 +1354,26 @@ async function initNotifications() {
         }
 
         return `
-            <div class="glass-card notification-item ${isRead ? 'read' : 'unread'}" style="display: flex; gap: 1rem; padding: 1.25rem; position: relative; border-left: 4px solid ${isRead ? 'transparent' : 'var(--primary)'}; transition: transform 0.2s;">
+            <div class="notification-item ${isRead ? 'read' : 'unread'}">
                 <div style="position: relative; flex-shrink: 0;">
                     ${n.sender_photo && n.sender_photo.length > 50 
                         ? `<img src="${n.sender_photo}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">`
                         : `<div style="width: 48px; height: 48px; border-radius: 50%; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; color: var(--text-muted);"><i data-lucide="user" style="width: 24px; height: 24px;"></i></div>`
                     }
-                    <div style="position: absolute; bottom: -4px; right: -4px; width: 22px; height: 22px; background: var(--bg-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg-card);">
-                        <i data-lucide="${icon}" style="width: 12px; height: 12px; color: ${iconColor};"></i>
+                    <div style="position: absolute; bottom: -4px; right: -4px; width: 20px; height: 20px; background: var(--bg-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg-card);">
+                        <i data-lucide="${icon}" style="width: 10px; height: 10px; color: ${iconColor};"></i>
                     </div>
                 </div>
-                <div style="flex: 1;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-                        <p style="margin: 0; font-size: 0.95rem; line-height: 1.4;">${content}</p>
-                        <span style="font-size: 0.75rem; color: var(--text-muted); white-space: nowrap;">${time}</span>
-                    </div>
-                    ${actions}
+                <div class="notification-info">
+                    <p class="notification-text"><span class="notification-name">${n.sender_name}</span> ${messageText}</p>
+                    <span style="font-size: 0.7rem; color: var(--text-muted); opacity: 0.7;">${time}</span>
+                    ${n.type === 'follow_request' ? `
+                        <div class="notification-actions" style="margin-top: 0.75rem;">
+                            <button onclick="handleNotificationAction('${n.sender_uid}', 'accept', ${n.id})" class="btn-social-accept">Confirm</button>
+                            <button onclick="handleNotificationAction('${n.sender_uid}', 'reject', ${n.id})" class="btn-social-reject">Delete</button>
+                        </div>
+                    ` : ''}
                 </div>
-                ${!isRead ? `<div style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%; position: absolute; top: 1.25rem; right: 0.75rem;"></div>` : ''}
             </div>
         `;
     }).join('');

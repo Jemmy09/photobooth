@@ -606,9 +606,114 @@ main#content {
     display: flex;
     align-items: center;
     justify-content: center;
+/* Notification Specifics */
+.notification-item {
+    cursor: pointer;
+}
+
+.notification-item.unread {
+    background: rgba(139, 92, 246, 0.05);
+}
+
+.notification-item.read {
+    opacity: 0.8;
+}
+
+.notification-item:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.notification-badge {
+    position: absolute;
+    top: 6px;
+    right: 12px;
+    background: var(--accent);
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    min-width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     border-radius: 50%;
     border: 2px solid var(--bg-dark);
     box-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
+}
+
+/* Social Action Buttons (Facebook/Instagram Style) */
+.notification-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--glass);
+    border-radius: 16px;
+    border: 1px solid var(--glass-border);
+    margin-bottom: 0.75rem;
+    transition: var(--transition-fast);
+}
+
+.notification-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.notification-info {
+    flex: 1;
+}
+
+.notification-name {
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.notification-text {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.notification-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.btn-social-accept {
+    background: var(--primary);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-social-reject {
+    background: var(--bg-card-hover);
+    color: var(--text-main);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid var(--glass-border);
+    cursor: pointer;
+}
+
+.btn-social-accept:hover { filter: brightness(1.1); transform: scale(1.02); }
+.btn-social-reject:hover { background: rgba(255, 255, 255, 0.1); }
+
+@media (max-width: 600px) {
+    .notification-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .notification-actions {
+        width: 100%;
+    }
+    .notification-actions button {
+        flex: 1;
+    }
 }
 
 @media (max-width: 768px) {
