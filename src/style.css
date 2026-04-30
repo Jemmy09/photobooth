@@ -426,7 +426,7 @@ main#content {
   }
 
   main#content {
-    padding-top: 2rem;
+    padding-top: 7rem; /* Make room for top nav */
     padding-bottom: 2rem; /* No bottom nav */
   }
 
