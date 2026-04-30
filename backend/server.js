@@ -4,8 +4,14 @@ const admin = require('firebase-admin');
 const cors = require('cors');
 require('dotenv').config();
 
+let dbUrl = process.env.DATABASE_URL || '';
+// Strip ?sslmode=require to prevent it from overriding our custom SSL config
+if (dbUrl.includes('?')) {
+  dbUrl = dbUrl.split('?')[0];
+}
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: dbUrl,
   ssl: { rejectUnauthorized: false }
 });
 
