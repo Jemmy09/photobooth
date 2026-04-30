@@ -1109,20 +1109,7 @@ window.showLastPrint = () => {
     }
 };
 
-function showToast(message, type = 'info') {
-    const toast = document.createElement('div');
-    toast.className = `glass-card fade-in`;
-    toast.style.padding = '0.75rem 1.5rem';
-    toast.style.marginBottom = '0.5rem';
-    toast.style.borderLeft = `4px solid ${type === 'error' ? 'var(--accent)' : 'var(--primary)'}`;
-    toast.innerHTML = `<p>${message}</p>`;
-    notificationContainer.appendChild(toast);
-    setTimeout(() => {
-        toast.style.opacity = '0';
-        toast.style.transform = 'translateX(20px)';
-        setTimeout(() => toast.remove(), 300);
-    }, 3000);
-}
+
 
 async function initProfile() {
     if (!currentUser) return;
