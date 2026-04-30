@@ -133,7 +133,8 @@ app.post('/api/profile/sync', authenticateUser, async (req, res) => {
         END,
         location_lat = COALESCE(EXCLUDED.location_lat, profiles.location_lat),
         location_lng = COALESCE(EXCLUDED.location_lng, profiles.location_lng),
-        last_seen = CURRENT_TIMESTAMP;
+        last_seen = CURRENT_TIMESTAMP
+    `, [uid, name, email, photoURL, lat, lng]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
