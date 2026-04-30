@@ -127,8 +127,8 @@ app.post('/api/profile/sync', authenticateUser, async (req, res) => {
       ON CONFLICT (uid) DO UPDATE SET
         display_name = COALESCE(EXCLUDED.display_name, profiles.display_name),
         photo_url = CASE 
-          WHEN EXCLUDED.photo_url IS NOT NULL AND LENGTH(EXCLUDED.photo_url) > 20 AND (profiles.photo_url IS NULL OR LENGTH(EXCLUDED.photo_url) >= LENGTH(profiles.photo_url)) 
-          THEN EXCLUDED.photo_url 
+          WHEN ($4::TEXT) IS NOT NULL AND LENGTH($4::TEXT) > 20 AND (profiles.photo_url IS NULL OR LENGTH($4::TEXT) >= LENGTH(profiles.photo_url)) 
+          THEN $4::TEXT 
           ELSE profiles.photo_url 
         END,
         location_lat = COALESCE(EXCLUDED.location_lat, profiles.location_lat),
@@ -186,7 +186,7 @@ app.post('/api/profile/update', authenticateUser, async (req, res) => {
       UPDATE profiles SET 
         display_name = COALESCE($1, display_name), 
         photo_url = CASE 
-          WHEN $2 IS NOT NULL AND LENGTH($2) > 20 THEN $2 
+          WHEN ($2::TEXT) IS NOT NULL AND LENGTH($2::TEXT) > 20 THEN $2::TEXT 
           ELSE photo_url 
         END
       WHERE uid = $3
