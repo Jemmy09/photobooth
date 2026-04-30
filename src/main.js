@@ -41,11 +41,19 @@ function init() {
         currentUser = user;
         if (user) {
             syncProfile(user);
+            // Stay active: sync profile every 2 minutes
+            if (!window.profileSyncInterval) {
+                window.profileSyncInterval = setInterval(() => syncProfile(currentUser), 120000);
+            }
+            
             showView('dashboard');
             navElement.classList.remove('hidden');
             updateUserUI();
-            fetchFriends(); // Fetch friends when user is logged in
         } else {
+            if (window.profileSyncInterval) {
+                clearInterval(window.profileSyncInterval);
+                window.profileSyncInterval = null;
+            }
             showView('login');
             navElement.classList.add('hidden');
         }
@@ -95,6 +103,10 @@ function showView(view) {
         contentElement.appendChild(template.content.cloneNode(true));
         
         // View specific initialization
+        if (view === 'dashboard') {
+            updateUserUI();
+            fetchFriends(true); // Active friends only for dashboard
+        }
         if (view === 'booth') initBooth();
         if (view === 'friends') initFriends();
         if (view === 'profile') initProfile();
@@ -168,6 +180,10 @@ function renderDynamicView(view) {
             </div>
         `;
         initBooth();
+    } else if (view === 'dashboard') {
+        contentElement.innerHTML = document.getElementById('view-dashboard').innerHTML;
+        updateUserUI();
+        fetchFriends(true); // Only active friends for dashboard
     } else if (view === 'friends') {
         contentElement.innerHTML = `
             <div class="fade-in mt-2">
@@ -661,24 +677,29 @@ window.unfollowUser = async (targetUid, btn) => {
     }
 };
 
-async function fetchFriends() {
+async function fetchFriends(onlyActive = false) {
     if (!currentUser) return;
     try {
         const token = await currentUser.getIdToken();
-        const res = await fetch(`${API_BASE_URL}/api/friends`, {
+        const url = onlyActive ? `${API_BASE_URL}/api/friends?active=true` : `${API_BASE_URL}/api/friends`;
+        const res = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (!res.ok) throw new Error("Backend response not ok");
         const friends = await res.json();
-        renderFriendsList(friends);
-        renderMiniFriendsList(friends);
+        
+        if (onlyActive) {
+            renderMiniFriendsList(friends);
+        } else {
+            renderFriendsList(friends);
+        }
     } catch (e) {
         console.error("Error fetching friends:", e);
-        const container = document.getElementById('friends-list');
+        const container = document.getElementById(onlyActive ? 'friends-mini-list' : 'friends-list');
         if (container) {
             container.innerHTML = `
                 <div class="glass-card flex-center" style="grid-column: 1 / -1; height: 150px; border-style: dashed; border-color: var(--accent);">
-                    <p class="text-muted" style="text-align: center;">Could not connect to backend.<br><small>If using Render, it may be sleeping. Please wait 60s and refresh.</small></p>
+                    <p class="text-muted" style="text-align: center;">Could not connect to backend.</p>
                 </div>
             `;
         }
@@ -722,25 +743,19 @@ function renderFriendsList(friends) {
 function renderMiniFriendsList(friends) {
     const container = document.getElementById('friends-mini-list');
     if (!container) return;
-
-    if (friends.length === 0) {
-        container.innerHTML = `<p class="text-muted">Follow some friends to see them here.</p>`;
+    if (!friends || friends.length === 0) {
+        container.innerHTML = `<p class="text-muted">No friends are online right now.</p>`;
         return;
     }
-
-    container.innerHTML = `
-        <div style="display: flex; gap: 1rem; overflow-x: auto; width: 100%; padding-bottom: 0.5rem;">
-            ${friends.map(f => `
-                <div class="flex-center" style="flex-direction: column; min-width: 80px; cursor: pointer;" onclick="inviteFriend('${f.uid}')">
-                    <div style="position: relative;">
-                        <img src="${f.photo_url || 'https://via.placeholder.com/40'}" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--primary); padding: 2px;">
-                        <div style="position: absolute; bottom: 5px; right: 5px; width: 12px; height: 12px; background: #10b981; border-radius: 50%; border: 2px solid var(--bg-card);"></div>
-                    </div>
-                    <span style="font-size: 0.75rem; margin-top: 0.5rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 70px;">${f.display_name.split(' ')[0]}</span>
-                </div>
-            `).join('')}
+    container.innerHTML = friends.map(f => `
+        <div class="flex-center" style="flex-direction: column; gap: 0.5rem;">
+            <div style="position: relative;">
+                <img src="${f.photo_url || 'https://via.placeholder.com/60'}" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--primary); padding: 2px;">
+                <div style="position: absolute; bottom: 2px; right: 2px; width: 14px; height: 14px; background: #10b981; border-radius: 50%; border: 2px solid var(--bg-dark);"></div>
+            </div>
+            <span style="font-size: 0.8rem; font-weight: 500;">${f.display_name.split(' ')[0]}</span>
         </div>
-    `;
+    `).join('');
 }
 
 window.inviteFriend = async (targetUid) => {

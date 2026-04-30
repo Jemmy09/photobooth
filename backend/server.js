@@ -270,14 +270,21 @@ app.post('/api/follow/respond/:senderUid', authenticateUser, async (req, res) =>
 
 // 5. Get Friends List
 app.get('/api/friends', authenticateUser, async (req, res) => {
+  const { active } = req.query;
   try {
-    const result = await pool.query(`
-      SELECT p.uid, p.display_name, p.photo_url, f.status
+    let query = `
+      SELECT p.uid, p.display_name, p.photo_url, f.status, p.last_seen
       FROM profiles p
       JOIN follows f ON (f.follower_uid = p.uid AND f.following_uid = $1)
       OR (f.following_uid = p.uid AND f.follower_uid = $1)
       WHERE f.status = 'accepted'
-    `, [req.user.uid]);
+    `;
+
+    if (active === 'true') {
+      query += " AND p.last_seen > NOW() - INTERVAL '5 minutes'";
+    }
+
+    const result = await pool.query(query, [req.user.uid]);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
