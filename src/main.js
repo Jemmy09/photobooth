@@ -38,6 +38,8 @@ const notificationContainer = document.getElementById('notification-container');
 // --- Initialization ---
 function init() {
     auth.onAuthStateChanged(user => {
+        currentUser = user;
+        if (user) {
             console.log("🚀 PhotoBooth v1.2.0 - Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
