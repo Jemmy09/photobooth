@@ -41,18 +41,23 @@ function init() {
         currentUser = user;
         if (user) {
             syncProfile(user);
-            // Stay active: sync profile every 2 minutes
-            if (!window.profileSyncInterval) {
-                window.profileSyncInterval = setInterval(() => syncProfile(currentUser), 120000);
+            fetchNotifications(); // Initial check
+            
+            // Stay active heartbeat
+            if (!window.appHeartbeat) {
+                window.appHeartbeat = setInterval(() => {
+                    syncProfile(currentUser);
+                    fetchNotifications();
+                }, 60000); // Every minute
             }
             
             showView('dashboard');
             navElement.classList.remove('hidden');
             updateUserUI();
         } else {
-            if (window.profileSyncInterval) {
-                clearInterval(window.profileSyncInterval);
-                window.profileSyncInterval = null;
+            if (window.appHeartbeat) {
+                clearInterval(window.appHeartbeat);
+                window.appHeartbeat = null;
             }
             showView('login');
             navElement.classList.add('hidden');
@@ -1243,6 +1248,152 @@ function debounce(func, wait) {
         timeout = setTimeout(() => func.apply(this, args), wait);
     };
 }
+
+// --- Notifications Logic ---
+async function fetchNotifications() {
+    if (!currentUser) return;
+    try {
+        const token = await currentUser.getIdToken();
+        const res = await fetch(`${API_BASE_URL}/api/notifications`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const notifications = await res.json();
+        
+        const badge = document.getElementById('nav-notification-badge');
+        const unreadCount = notifications.filter(n => !n.read).length;
+        
+        if (unreadCount > 0) {
+            if (badge) {
+                badge.innerText = unreadCount > 9 ? '9+' : unreadCount;
+                badge.classList.remove('hidden');
+            }
+        } else {
+            if (badge) badge.classList.add('hidden');
+        }
+        
+        return notifications;
+    } catch (e) {
+        console.error("Failed to fetch notifications:", e);
+    }
+}
+
+async function initNotifications() {
+    const listContainer = document.getElementById('notifications-list');
+    if (!listContainer) return;
+    
+    listContainer.innerHTML = '<div class="flex-center" style="padding: 2rem;"><div class="loader"></div></div>';
+    
+    const notifications = await fetchNotifications();
+    
+    if (!notifications || notifications.length === 0) {
+        listContainer.innerHTML = `
+            <div class="glass-card flex-center" style="flex-direction: column; padding: 3rem; text-align: center; border-style: dashed;">
+                <div style="width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+                    <i data-lucide="bell-off" style="width: 32px; height: 32px; color: var(--text-muted);"></i>
+                </div>
+                <p style="font-weight: 600; color: var(--text-main);">All caught up!</p>
+                <p class="text-muted" style="font-size: 0.9rem;">No new notifications right now.</p>
+            </div>
+        `;
+        return;
+    }
+
+    listContainer.innerHTML = notifications.map(n => {
+        const time = new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const isRead = n.read;
+        const avatarBg = `hsl(${Math.abs(n.sender_uid.charCodeAt(0) * 37) % 360}, 30%, 20%)`;
+        
+        let content = '';
+        let actions = '';
+        let icon = 'bell';
+        let iconColor = 'var(--primary)';
+
+        if (n.type === 'follow_request') {
+            content = `<strong>${n.sender_name}</strong> sent you a friend request.`;
+            icon = 'user-plus';
+            actions = `
+                <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                    <button onclick="handleNotificationAction('${n.sender_uid}', 'accept', ${n.id})" class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.8rem;">Accept</button>
+                    <button onclick="handleNotificationAction('${n.sender_uid}', 'reject', ${n.id})" class="btn btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.8rem;">Ignore</button>
+                </div>
+            `;
+        } else if (n.type === 'follow_accept') {
+            content = `<strong>${n.sender_name}</strong> accepted your friend request!`;
+            icon = 'heart';
+            iconColor = '#ec4899';
+        }
+
+        return `
+            <div class="glass-card notification-item ${isRead ? 'read' : 'unread'}" style="display: flex; gap: 1rem; padding: 1.25rem; position: relative; border-left: 4px solid ${isRead ? 'transparent' : 'var(--primary)'}; transition: transform 0.2s;">
+                <div style="position: relative; flex-shrink: 0;">
+                    ${n.sender_photo && n.sender_photo.length > 50 
+                        ? `<img src="${n.sender_photo}" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;">`
+                        : `<div style="width: 48px; height: 48px; border-radius: 50%; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; color: var(--text-muted);"><i data-lucide="user" style="width: 24px; height: 24px;"></i></div>`
+                    }
+                    <div style="position: absolute; bottom: -4px; right: -4px; width: 22px; height: 22px; background: var(--bg-dark); border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 2px solid var(--bg-card);">
+                        <i data-lucide="${icon}" style="width: 12px; height: 12px; color: ${iconColor};"></i>
+                    </div>
+                </div>
+                <div style="flex: 1;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <p style="margin: 0; font-size: 0.95rem; line-height: 1.4;">${content}</p>
+                        <span style="font-size: 0.75rem; color: var(--text-muted); white-space: nowrap;">${time}</span>
+                    </div>
+                    ${actions}
+                </div>
+                ${!isRead ? `<div style="width: 8px; height: 8px; background: var(--primary); border-radius: 50%; position: absolute; top: 1.25rem; right: 0.75rem;"></div>` : ''}
+            </div>
+        `;
+    }).join('');
+
+    // Mark as read after 2 seconds
+    setTimeout(async () => {
+        try {
+            const token = await currentUser.getIdToken();
+            await fetch(`${API_BASE_URL}/api/notifications/read`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            fetchNotifications(); // Update badge
+        } catch (e) {}
+    }, 2000);
+
+    refreshIcons();
+}
+
+window.handleNotificationAction = async (senderUid, action, notificationId) => {
+    showToast(`${action === 'accept' ? 'Accepting' : 'Ignoring'} request...`, "info");
+    try {
+        const token = await currentUser.getIdToken();
+        const res = await fetch(`${API_BASE_URL}/api/follow/respond/${senderUid}`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ action })
+        });
+        
+        if (res.ok) {
+            showToast(action === 'accept' ? "Friend request accepted!" : "Request ignored", "success");
+            initNotifications(); // Refresh list
+        }
+    } catch (e) {
+        showToast("Action failed", "error");
+    }
+};
+
+window.clearAllNotifications = async () => {
+    if (!confirm("Clear all notifications?")) return;
+    try {
+        const token = await currentUser.getIdToken();
+        await fetch(`${API_BASE_URL}/api/notifications`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        initNotifications();
+    } catch (e) {}
+};
 
 // Start
 init();

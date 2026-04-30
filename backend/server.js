@@ -277,6 +277,12 @@ app.post('/api/follow/respond/:senderUid', authenticateUser, async (req, res) =>
         WHERE follower_uid = $1 AND following_uid = $2
       `, [senderUid, req.user.uid]);
 
+      // Notify the sender that they were accepted
+      await pool.query(`
+        INSERT INTO notifications (recipient_uid, sender_uid, type)
+        VALUES ($1, $2, 'follow_accept')
+      `, [senderUid, req.user.uid]);
+
       // Automatically follow back? User mentioned "Follow back" as an option.
       // We'll just set the status for now.
     } else {
@@ -399,17 +405,36 @@ app.post('/api/booth/session/:id/photo', authenticateUser, async (req, res) => {
   }
 });
 
-// 10. Get Notifications
+// 10. Notifications
 app.get('/api/notifications', authenticateUser, async (req, res) => {
   try {
     const result = await pool.query(`
       SELECT n.*, p.display_name as sender_name, p.photo_url as sender_photo
       FROM notifications n
       JOIN profiles p ON n.sender_uid = p.uid
-      WHERE n.recipient_uid = $1 AND n.read = FALSE
+      WHERE n.recipient_uid = $1
       ORDER BY n.created_at DESC
+      LIMIT 50
     `, [req.user.uid]);
     res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/notifications/read', authenticateUser, async (req, res) => {
+  try {
+    await pool.query('UPDATE notifications SET read = TRUE WHERE recipient_uid = $1', [req.user.uid]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/notifications', authenticateUser, async (req, res) => {
+  try {
+    await pool.query('DELETE FROM notifications WHERE recipient_uid = $1', [req.user.uid]);
+    res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
