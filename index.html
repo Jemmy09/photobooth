@@ -57,13 +57,13 @@
 
       <!-- Main Content Area -->
       <main id="content" class="container">
-        <div class="flex-center" style="min-height: 80vh; display: flex; align-items: center; justify-content: center;">
+        <div style="min-height: 70vh; display: flex; align-items: center; justify-content: center;">
           <div class="loader" style="width: 40px; height: 40px; border: 4px solid var(--glass-border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite;"></div>
         </div>
       </main>
 
-      <!-- Toast Notifications -->
-      <div id="notification-container" style="position: fixed; bottom: 2rem; right: 2rem; z-index: 2000; display: flex; flex-direction: column-reverse; gap: 0.5rem; align-items: flex-end;"></div>
+      <!-- Toast Notifications (Responsive placement) -->
+      <div id="notification-container" style="position: fixed; bottom: 6rem; left: 50%; transform: translateX(-50%); z-index: 2000; display: flex; flex-direction: column-reverse; gap: 0.5rem; align-items: center; width: 90%; max-width: 400px; pointer-events: none;"></div>
     </div>
 
     <!-- View Templates -->
