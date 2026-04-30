@@ -795,6 +795,7 @@ function renderMiniFriendsList(friends) {
             <span style="font-size: 0.8rem; font-weight: 500;">${(f.display_name || 'User').split(' ')[0]}</span>
         </div>
     `; }).join('');
+    refreshIcons();
 }
 
 window.inviteFriend = async (targetUid) => {
@@ -895,6 +896,7 @@ function renderSearchResults(users) {
             ${btnHtml}
         </div>`;
     }).join('');
+    refreshIcons();
 }
 
 
