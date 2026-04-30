@@ -606,37 +606,6 @@ main#content {
     display: flex;
     align-items: center;
     justify-content: center;
-/* Notification Specifics */
-.notification-item {
-    cursor: pointer;
-}
-
-.notification-item.unread {
-    background: rgba(139, 92, 246, 0.05);
-}
-
-.notification-item.read {
-    opacity: 0.8;
-}
-
-.notification-item:hover {
-    transform: translateY(-2px);
-    background: rgba(255, 255, 255, 0.08);
-}
-
-.notification-badge {
-    position: absolute;
-    top: 6px;
-    right: 12px;
-    background: var(--accent);
-    color: white;
-    font-size: 0.65rem;
-    font-weight: 800;
-    min-width: 18px;
-    height: 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     border-radius: 50%;
     border: 2px solid var(--bg-dark);
     box-shadow: 0 0 10px rgba(244, 63, 94, 0.4);
@@ -659,6 +628,14 @@ main#content {
     background: rgba(255, 255, 255, 0.08);
 }
 
+.notification-item.unread {
+    background: rgba(139, 92, 246, 0.05);
+}
+
+.notification-item.read {
+    opacity: 0.8;
+}
+
 .notification-info {
     flex: 1;
 }
@@ -676,6 +653,7 @@ main#content {
 .notification-actions {
     display: flex;
     gap: 0.5rem;
+    margin-top: 0.75rem;
 }
 
 .btn-social-accept {
