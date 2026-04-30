@@ -938,28 +938,42 @@ async function initNotifications() {
         container.innerHTML = notifications.map(n => {
             let actionHtml = '';
             let messageText = `${n.type.replace('_', ' ')}`;
+            const timeAgo = new Date(n.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
             if (n.type === 'booth_invite') {
                 const data = JSON.parse(n.data || '{}');
                 messageText = `invited you to a PhotoBooth session!`;
                 actionHtml = `
-                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-                        <button onclick="respondInvite(${data.sessionId}, 'accept', this)" class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">Accept</button>
-                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">Dismiss</button>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                        <button onclick="respondInvite(${data.sessionId}, 'accept', this)" class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.8rem; border-radius: 10px;">Accept</button>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.8rem; border-radius: 10px;">Dismiss</button>
                     </div>
                 `;
             } else if (n.type === 'follow_request') {
                 messageText = `sent you a friend request!`;
                 actionHtml = `
-                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
-                        <button onclick="respondFollowRequest('${n.sender_uid}', 'accept', this)" class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">Accept</button>
-                        <button onclick="respondFollowRequest('${n.sender_uid}', 'reject', this)" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">Reject</button>
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
+                        <button onclick="respondFollowRequest('${n.sender_uid}', 'accept', this)" class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.8rem; border-radius: 10px;">Confirm</button>
+                        <button onclick="respondFollowRequest('${n.sender_uid}', 'reject', this)" class="btn btn-secondary" style="padding: 0.4rem 1rem; font-size: 0.8rem; border-radius: 10px;">Ignore</button>
                     </div>
                 `;
             }
+
+            const avatarBg = `hsl(${Math.abs(n.sender_uid.charCodeAt(0) * 37) % 360}, 30%, 20%)`;
+            const avatarHtml = (n.sender_photo && n.sender_photo.length > 50)
+                ? `<img src="${n.sender_photo}" style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover;">`
+                : `<div style="width: 44px; height: 44px; border-radius: 12px; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; color: var(--text-muted); border: 1px solid var(--glass-border);"><i data-lucide="user" style="width: 20px;"></i></div>`;
+
             return `
-                <div class="glass-card" style="padding: 1rem; border-left: 3px solid var(--primary);">
-                    <p style="margin: 0; font-weight: 500;"><strong>${n.sender_name}</strong> ${messageText}</p>
-                    ${actionHtml}
+                <div class="glass-card fade-in" style="display: flex; gap: 1rem; padding: 1rem; border-left: 4px solid ${n.read ? 'transparent' : 'var(--primary)'};">
+                    ${avatarHtml}
+                    <div style="flex: 1;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <p style="margin: 0; font-size: 0.95rem; line-height: 1.4;"><strong>${n.sender_name}</strong> ${messageText}</p>
+                            <span class="text-muted" style="font-size: 0.7rem; font-weight: 600;">${timeAgo}</span>
+                        </div>
+                        ${actionHtml}
+                    </div>
                 </div>
             `;
         }).join('');
