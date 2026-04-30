@@ -127,13 +127,13 @@ app.post('/api/profile/sync', authenticateUser, async (req, res) => {
       ON CONFLICT (uid) DO UPDATE SET
         display_name = COALESCE(EXCLUDED.display_name, profiles.display_name),
         photo_url = CASE 
-          WHEN EXCLUDED.photo_url IS NOT NULL AND LENGTH(EXCLUDED.photo_url) > 20 THEN EXCLUDED.photo_url 
+          WHEN EXCLUDED.photo_url IS NOT NULL AND LENGTH(EXCLUDED.photo_url) > 20 AND (profiles.photo_url IS NULL OR LENGTH(EXCLUDED.photo_url) >= LENGTH(profiles.photo_url)) 
+          THEN EXCLUDED.photo_url 
           ELSE profiles.photo_url 
         END,
         location_lat = COALESCE(EXCLUDED.location_lat, profiles.location_lat),
         location_lng = COALESCE(EXCLUDED.location_lng, profiles.location_lng),
-        last_seen = CURRENT_TIMESTAMP
-    `, [uid, name, email, photoURL, lat, lng]);
+        last_seen = CURRENT_TIMESTAMP;
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -182,7 +182,12 @@ app.post('/api/profile/update', authenticateUser, async (req, res) => {
   const { name, photoURL } = req.body;
   try {
     await pool.query(`
-      UPDATE profiles SET display_name = $1, photo_url = $2
+      UPDATE profiles SET 
+        display_name = COALESCE($1, display_name), 
+        photo_url = CASE 
+          WHEN $2 IS NOT NULL AND LENGTH($2) > 20 THEN $2 
+          ELSE photo_url 
+        END
       WHERE uid = $3
     `, [name, photoURL, req.user.uid]);
     res.json({ success: true });
