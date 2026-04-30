@@ -722,7 +722,7 @@ function renderFriendsList(friends) {
     container.innerHTML = friends.map(f => {
         const initials = (f.display_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
         const avatarBg = `hsl(${Math.abs(f.uid.charCodeAt(0) * 37) % 360}, 60%, 40%)`;
-        const avatarHtml = f.photo_url
+        const avatarHtml = (f.photo_url && f.photo_url.length > 20)
             ? `<img src="${f.photo_url}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">`
             : `<div style="width: 46px; height: 46px; border-radius: 50%; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; color: white;">${initials}</div>`;
 
@@ -747,15 +747,23 @@ function renderMiniFriendsList(friends) {
         container.innerHTML = `<p class="text-muted">No friends are online right now.</p>`;
         return;
     }
-    container.innerHTML = friends.map(f => `
+    container.innerHTML = friends.map(f => {
+        const hasImg = (f.photo_url && f.photo_url.length > 20);
+        const initials = (f.display_name || 'U').charAt(0).toUpperCase();
+        const avatarBg = `hsl(${Math.abs(f.uid.charCodeAt(0) * 37) % 360}, 60%, 40%)`;
+        
+        return `
         <div class="flex-center" style="flex-direction: column; gap: 0.5rem;">
             <div style="position: relative;">
-                <img src="${f.photo_url || 'https://via.placeholder.com/60'}" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--primary); padding: 2px;">
+                ${hasImg 
+                    ? `<img src="${f.photo_url}" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--primary); padding: 2px; object-fit: cover;">`
+                    : `<div style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--primary); background: ${avatarBg}; display: flex; align-items: center; justify-content: center; font-weight: 800; color: white;">${initials}</div>`
+                }
                 <div style="position: absolute; bottom: 2px; right: 2px; width: 14px; height: 14px; background: #10b981; border-radius: 50%; border: 2px solid var(--bg-dark);"></div>
             </div>
-            <span style="font-size: 0.8rem; font-weight: 500;">${f.display_name.split(' ')[0]}</span>
+            <span style="font-size: 0.8rem; font-weight: 500;">${(f.display_name || 'User').split(' ')[0]}</span>
         </div>
-    `).join('');
+    `; }).join('');
 }
 
 window.inviteFriend = async (targetUid) => {
@@ -1026,7 +1034,7 @@ async function initProfile() {
     // Initial load from Firebase
     nameEl.innerText = currentUser.displayName || 'Anonymous';
     emailEl.innerText = currentUser.email;
-    imgEl.src = currentUser.photoURL || 'https://via.placeholder.com/150';
+    imgEl.src = (currentUser.photoURL && currentUser.photoURL.length > 20) ? currentUser.photoURL : 'https://via.placeholder.com/150';
 
     // Fetch extra details from backend
     try {
@@ -1037,8 +1045,8 @@ async function initProfile() {
         const data = await res.json();
 
         if (data) {
-            nameEl.innerText = data.display_name || currentUser.displayName;
-            imgEl.src = data.photo_url || currentUser.photoURL || 'https://via.placeholder.com/150';
+            nameEl.innerText = data.display_name || currentUser.displayName || 'Anonymous';
+            imgEl.src = (data.photo_url && data.photo_url.length > 20) ? data.photo_url : ((currentUser.photoURL && currentUser.photoURL.length > 20) ? currentUser.photoURL : 'https://via.placeholder.com/150');
             
             if (data.created_at) {
                 const date = new Date(data.created_at);
