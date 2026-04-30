@@ -1076,7 +1076,11 @@ async function syncProfile(user) {
 
 function updateUserUI() {
     const userName = document.getElementById('user-name');
-    if (userName && currentUser) userName.innerText = currentUser.displayName.split(' ')[0];
+    if (userName && currentUser) {
+        const rawName = currentUser.displayName || currentUser.email.split('@')[0] || 'User';
+        const formattedName = rawName.split(' ')[0];
+        userName.innerText = formattedName.charAt(0).toUpperCase() + formattedName.slice(1).toLowerCase();
+    }
     
     const recentPhotos = document.getElementById('recent-photos');
     const lastPrint = localStorage.getItem('recent_print');
