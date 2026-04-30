@@ -633,11 +633,20 @@ async function fetchFriends() {
         const res = await fetch(`${API_BASE_URL}/api/friends`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
+        if (!res.ok) throw new Error("Backend response not ok");
         const friends = await res.json();
         renderFriendsList(friends);
         renderMiniFriendsList(friends);
     } catch (e) {
         console.error("Error fetching friends:", e);
+        const container = document.getElementById('friends-list');
+        if (container) {
+            container.innerHTML = `
+                <div class="glass-card flex-center" style="grid-column: 1 / -1; height: 150px; border-style: dashed; border-color: var(--accent);">
+                    <p class="text-muted" style="text-align: center;">Could not connect to backend.<br><small>If using Render, it may be sleeping. Please wait 60s and refresh.</small></p>
+                </div>
+            `;
+        }
     }
 }
 
@@ -740,10 +749,20 @@ async function fetchAllUsers() {
         const res = await fetch(`${API_BASE_URL}/api/users/search?query=`, {
             headers: { 'Authorization': `Bearer ${await currentUser.getIdToken()}` }
         });
+        if (!res.ok) throw new Error("Backend response not ok");
         const users = await res.json();
         renderSearchResults(users);
     } catch(e) {
         console.error('Error fetching all users:', e);
+        const container = document.getElementById('search-results');
+        if (container) {
+            container.innerHTML = `
+                <div class="glass-card" style="border-left: 4px solid var(--accent); padding: 1rem;">
+                    <p style="margin: 0; color: var(--text-main);"><strong>Backend Disconnected</strong></p>
+                    <p class="text-muted" style="margin: 0; font-size: 0.85rem;">Check if your VITE_API_URL is set in GitHub Secrets, or wait a minute for Render to wake up.</p>
+                </div>
+            `;
+        }
     }
 }
 
