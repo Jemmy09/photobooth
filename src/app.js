@@ -40,7 +40,7 @@ function init() {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            console.log("🚀 PhotoBooth v1.2.0 - Active");
+            console.log("🚀 PhotoBooth v1.2.1 - Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             
