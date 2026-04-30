@@ -1055,10 +1055,16 @@ async function initProfile() {
         if (data) {
             nameEl.innerText = data.display_name || currentUser.displayName || 'Anonymous';
             
-            const hasPhoto = data.photo_url && data.photo_url.length > 50;
+            let photoToUse = (data.photo_url && data.photo_url.length > 50) ? data.photo_url : null;
             
-            if (hasPhoto) {
-                profileImg.src = data.photo_url;
+            // Check local fallback
+            if (!photoToUse) {
+                const localPhoto = localStorage.getItem(`profile_photo_${currentUser.uid}`);
+                if (localPhoto) photoToUse = localPhoto;
+            }
+
+            if (photoToUse) {
+                profileImg.src = photoToUse;
                 profileImg.style.display = 'block';
                 profileFallback.style.display = 'none';
             } else {
@@ -1205,6 +1211,9 @@ window.handleProfileUpload = async (input) => {
                 }
 
                 showToast("Profile image updated!", "success");
+                
+                // Persistence fallback
+                localStorage.setItem(`profile_photo_${currentUser.uid}`, compressedBase64);
                 
                 // Immediate local UI update
                 const profileImg = document.getElementById('profile-img');
