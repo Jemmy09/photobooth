@@ -167,22 +167,36 @@
     </template>
 
     <template id="view-profile">
-            <h1 id="profile-name" style="font-size: 2rem; margin-bottom: 0.25rem;">User Name</h1>
-            <p id="profile-email" class="text-muted" style="margin-bottom: 1.5rem;">user@example.com</p>
+      <div class="fade-in">
+        <div class="glass-card" style="padding: 0; overflow: hidden; margin-bottom: 2rem;">
+          <div class="profile-banner"></div>
+          <div class="profile-hero" style="text-align: center; padding: 0 1.5rem 2rem;">
+            <div class="profile-avatar-container" onclick="document.getElementById('profile-upload').click()" style="cursor: pointer; position: relative; width: 140px; height: 140px; margin: -70px auto 1.5rem;">
+              <img id="profile-img" class="profile-avatar" style="display: none; width: 100%; height: 100%; border-radius: 40px; border: 6px solid var(--bg-dark); object-fit: cover;" />
+              <div id="profile-icon-fallback" class="profile-avatar" style="display: flex; align-items: center; justify-content: center; background: var(--bg-dark); width: 100%; height: 100%; border-radius: 40px; border: 6px solid var(--bg-dark);">
+                <i data-lucide="user" style="width: 60px; height: 60px; color: var(--text-muted);"></i>
+              </div>
+              <div style="position: absolute; bottom: 8px; right: 8px; background: var(--primary); color: white; width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 4px solid var(--bg-dark); box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                <i data-lucide="camera" style="width: 18px;"></i>
+              </div>
+            </div>
+            
+            <h2 id="profile-name" class="gradient-text" style="font-size: 2rem; margin-bottom: 0.25rem;">User Name</h2>
+            <p id="profile-email" class="text-muted" style="margin-bottom: 1.5rem;">email@example.com</p>
 
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
-                <div class="glass-card" style="padding: 1rem; background: rgba(255,255,255,0.02);">
-                    <p style="font-size: 1.25rem; font-weight: 800; color: var(--primary);" id="stats-friends">0</p>
-                    <p style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">FRIENDS</p>
-                </div>
-                <div class="glass-card" style="padding: 1rem; background: rgba(255,255,255,0.02);">
-                    <p style="font-size: 1.25rem; font-weight: 800; color: var(--secondary);" id="stats-followers">0</p>
-                    <p style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">FOLLOWERS</p>
-                </div>
-                <div class="glass-card" style="padding: 1rem; background: rgba(255,255,255,0.02);">
-                    <p style="font-size: 1.25rem; font-weight: 800; color: #10b981;" id="stats-mutual">0</p>
-                    <p style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">MUTUAL</p>
-                </div>
+              <div class="glass-card" style="padding: 1rem; background: rgba(255,255,255,0.02);">
+                <p style="font-size: 1.25rem; font-weight: 800; color: var(--primary);" id="stats-friends">0</p>
+                <p style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">FRIENDS</p>
+              </div>
+              <div class="glass-card" style="padding: 1rem; background: rgba(255,255,255,0.02);">
+                <p style="font-size: 1.25rem; font-weight: 800; color: var(--secondary);" id="stats-followers">0</p>
+                <p style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">FOLLOWERS</p>
+              </div>
+              <div class="glass-card" style="padding: 1rem; background: rgba(255,255,255,0.02);">
+                <p style="font-size: 1.25rem; font-weight: 800; color: #10b981;" id="stats-mutual">0</p>
+                <p style="font-size: 0.7rem; font-weight: 700; color: var(--text-muted);">MUTUAL</p>
+              </div>
             </div>
 
             <div style="text-align: left; display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 2rem;">
@@ -197,6 +211,8 @@
             </div>
 
             <button class="btn btn-primary" style="width: 100%; border-radius: 12px;" onclick="openEditModal()">Edit Profile Settings</button>
+            <input type="file" id="profile-upload" class="hidden" accept="image/*" onchange="handleProfileUpload(this)">
+          </div>
         </div>
       </div>
 
