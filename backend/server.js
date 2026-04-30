@@ -299,8 +299,10 @@ app.post('/api/follow/respond/:senderUid', authenticateUser, async (req, res) =>
       // Automatically follow back? User mentioned "Follow back" as an option.
       // We'll just set the status for now.
     } else {
+      // Downgrade to one-way follow (they are a follower, but not a friend)
       await pool.query(`
-        DELETE FROM follows WHERE follower_uid = $1 AND following_uid = $2
+        UPDATE follows SET status = 'following' 
+        WHERE follower_uid = $1 AND following_uid = $2
       `, [senderUid, req.user.uid]);
     }
     res.json({ success: true });

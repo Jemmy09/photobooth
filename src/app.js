@@ -877,6 +877,8 @@ function renderSearchResults(users) {
         
         if (u.sent_status === 'pending') {
             btnHtml = `<button onclick="cancelRequest('${u.uid}', this)" class="btn btn-retract-now" style="padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.85rem;">Cancel Request</button>`;
+        } else if (u.sent_status === 'following') {
+            btnHtml = `<div style="display: flex; align-items: center; gap: 0.5rem; color: var(--primary); font-weight: 600; font-size: 0.85rem;"><i data-lucide="check" style="width: 16px;"></i> Following</div>`;
         } else if (u.received_status === 'pending') {
             btnHtml = `<button onclick="respondFollowRequest('${u.uid}', 'accept', this)" class="btn btn-primary" style="padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.85rem;">Accept Friend</button>`;
         } else if (u.sent_status === 'accepted' || u.received_status === 'accepted') {
