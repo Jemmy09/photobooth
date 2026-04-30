@@ -66,6 +66,34 @@ h1, h2, h3, h4 {
 /* Components */
 
 /* Glass Card */
+.glass-panel {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+}
+
+/* Profile Enhancements */
+.profile-avatar-container:hover img {
+    transform: scale(1.02);
+    border-color: var(--secondary);
+}
+
+.profile-avatar-container:hover label {
+    transform: scale(1.1);
+    background: var(--secondary);
+}
+
+.modal-overlay {
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.modal-overlay.hidden {
+    display: none !important;
+    opacity: 0;
+    visibility: hidden;
+}
+
 .glass-card {
   background: var(--glass);
   backdrop-filter: blur(12px);

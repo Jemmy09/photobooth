@@ -204,28 +204,79 @@
 
     <template id="view-profile">
       <div class="fade-in mt-2 flex-center" style="flex-direction: column;">
-        <div class="glass-card" style="width: 100%; max-width: 500px; text-align: center;">
+        <div class="glass-card" style="width: 100%; max-width: 600px; padding: 2.5rem;">
             <div style="position: relative; display: inline-block; margin-bottom: 1.5rem;">
-                <img id="profile-img" src="https://via.placeholder.com/150" style="width: 150px; height: 150px; border-radius: 50%; border: 5px solid var(--primary); padding: 5px; object-fit: cover;">
-                <div style="position: absolute; bottom: 10px; right: 10px; background: var(--secondary); color: white; padding: 0.5rem; border-radius: 50%; box-shadow: var(--shadow-glow);">
-                    <i data-lucide="camera" style="width: 16px; height: 16px;"></i>
+                <div class="profile-avatar-container" style="position: relative;">
+                    <img id="profile-img" src="https://via.placeholder.com/150" style="width: 160px; height: 160px; border-radius: 50%; border: 4px solid var(--primary); padding: 4px; object-fit: cover; background: var(--bg-card);">
+                    <label for="profile-upload" style="position: absolute; bottom: 8px; right: 8px; background: var(--primary); color: white; width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 3px solid var(--bg-dark); box-shadow: var(--shadow-glow); transition: var(--transition-fast);">
+                        <i data-lucide="camera" style="width: 18px; height: 18px;"></i>
+                        <input type="file" id="profile-upload" hidden accept="image/*" onchange="handleProfileUpload(this)">
+                    </label>
                 </div>
             </div>
-            <h1 id="profile-name" style="font-family: 'Outfit', sans-serif; margin-bottom: 0.5rem;">User Name</h1>
+            
+            <h1 id="profile-name" style="font-family: 'Outfit', sans-serif; font-size: 2rem; margin-bottom: 0.25rem;">User Name</h1>
             <p id="profile-email" class="text-muted mb-2">user@example.com</p>
             
-            <div class="glass-card" style="background: rgba(0,0,0,0.2); padding: 1rem; text-align: left; margin-bottom: 1.5rem;">
-                <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
-                    <i data-lucide="map-pin" style="color: var(--secondary);"></i>
-                    <span id="profile-location">Detecting location...</span>
+            <div style="display: flex; justify-content: center; gap: 2rem; margin: 2rem 0; padding: 1.5rem; background: rgba(255,255,255,0.03); border-radius: 20px; border: 1px solid var(--glass-border);">
+                <div style="text-align: center;">
+                    <p id="stats-friends" style="font-size: 1.5rem; font-weight: 800; color: var(--primary);">0</p>
+                    <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Friends</p>
                 </div>
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <i data-lucide="heart" style="color: var(--accent);"></i>
-                    <span>Member since April 2026</span>
+                <div style="text-align: center;">
+                    <p id="stats-followers" style="font-size: 1.5rem; font-weight: 800; color: var(--secondary);">0</p>
+                    <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Followers</p>
+                </div>
+                <div style="text-align: center;">
+                    <p id="stats-mutual" style="font-size: 1.5rem; font-weight: 800; color: var(--accent);">0</p>
+                    <p style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted);">Mutual</p>
                 </div>
             </div>
 
-            <button class="btn btn-primary" style="width: 100%;">Edit Profile</button>
+            <div class="glass-card" style="background: rgba(0,0,0,0.2); padding: 1.25rem; text-align: left; margin-bottom: 2rem; border-radius: 16px;">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 0.75rem;">
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(6, 182, 212, 0.1); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="map-pin" style="width: 16px; height: 16px; color: var(--secondary);"></i>
+                    </div>
+                    <div>
+                        <p style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Current Location</p>
+                        <span id="profile-location" style="font-weight: 500;">Detecting location...</span>
+                    </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <div style="width: 32px; height: 32px; border-radius: 8px; background: rgba(139, 92, 246, 0.1); display: flex; align-items: center; justify-content: center;">
+                        <i data-lucide="calendar" style="width: 16px; height: 16px; color: var(--primary);"></i>
+                    </div>
+                    <div>
+                        <p style="font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase;">Member Since</p>
+                        <span id="profile-joined" style="font-weight: 500;">April 2026</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <button onclick="openEditModal()" class="btn btn-secondary" style="width: 100%; border-radius: 12px;">
+                    <i data-lucide="edit-3" style="width: 16px; height: 16px;"></i> Edit Profile
+                </button>
+                <button onclick="handleLogout()" class="btn btn-icon" style="width: 100%; height: auto; padding: 0.875rem; border-radius: 12px; background: rgba(244, 63, 94, 0.1); border: 1px solid rgba(244, 63, 94, 0.2); color: var(--accent);">
+                    <i data-lucide="log-out" style="width: 16px; height: 16px;"></i> Sign Out
+                </button>
+            </div>
+        </div>
+      </div>
+
+      <!-- Edit Profile Modal -->
+      <div id="edit-modal" class="modal-overlay hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 2000; display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
+        <div class="glass-card" style="width: 100%; max-width: 400px; padding: 2rem;">
+            <h2 class="mb-2">Edit Profile</h2>
+            <div class="input-group">
+                <label>Display Name</label>
+                <input type="text" id="edit-name" placeholder="Your Name">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 2rem;">
+                <button onclick="closeEditModal()" class="btn btn-secondary">Cancel</button>
+                <button onclick="saveProfileChanges()" class="btn btn-primary">Save Changes</button>
+            </div>
         </div>
       </div>
     </template>

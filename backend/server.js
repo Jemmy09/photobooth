@@ -28,7 +28,8 @@ const pool = new Pool({
         photo_url TEXT,
         location_lat DECIMAL,
         location_lng DECIMAL,
-        last_seen TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        last_seen TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
 
@@ -129,6 +130,45 @@ app.post('/api/profile/sync', authenticateUser, async (req, res) => {
         location_lng = EXCLUDED.location_lng,
         last_seen = CURRENT_TIMESTAMP
     `, [uid, name, email, photoURL, lat, lng]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 1.1 Get My Profile Details & Stats
+app.get('/api/profile/me', authenticateUser, async (req, res) => {
+  try {
+    const userRes = await pool.query('SELECT *, created_at FROM profiles WHERE uid = $1', [req.user.uid]);
+    const user = userRes.rows[0];
+
+    // Stats
+    const friendsCount = await pool.query("SELECT COUNT(*) FROM follows WHERE (follower_uid = $1 OR following_uid = $1) AND status = 'accepted'", [req.user.uid]);
+    const followersCount = await pool.query("SELECT COUNT(*) FROM follows WHERE following_uid = $1", [req.user.uid]);
+    const followingCount = await pool.query("SELECT COUNT(*) FROM follows WHERE follower_uid = $1", [req.user.uid]);
+
+    res.json({
+      ...user,
+      stats: {
+        friends: parseInt(friendsCount.rows[0].count),
+        followers: parseInt(followersCount.rows[0].count),
+        following: parseInt(followingCount.rows[0].count),
+        mutual: 0 // For my own profile, this is 0 or could be 'true' friends
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 1.2 Update Profile
+app.post('/api/profile/update', authenticateUser, async (req, res) => {
+  const { name, photoURL } = req.body;
+  try {
+    await pool.query(`
+      UPDATE profiles SET display_name = $1, photo_url = $2
+      WHERE uid = $3
+    `, [name, photoURL, req.user.uid]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

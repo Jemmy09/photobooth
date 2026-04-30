@@ -950,26 +950,147 @@ function showToast(message, type = 'info') {
     }, 3000);
 }
 
-function initProfile() {
+async function initProfile() {
     if (!currentUser) return;
     const nameEl = document.getElementById('profile-name');
     const emailEl = document.getElementById('profile-email');
     const imgEl = document.getElementById('profile-img');
     const locEl = document.getElementById('profile-location');
+    const joinedEl = document.getElementById('profile-joined');
+    const friendsStatsEl = document.getElementById('stats-friends');
+    const followersStatsEl = document.getElementById('stats-followers');
+    const mutualStatsEl = document.getElementById('stats-mutual');
 
-    nameEl.innerText = currentUser.displayName;
+    // Initial load from Firebase
+    nameEl.innerText = currentUser.displayName || 'Anonymous';
     emailEl.innerText = currentUser.email;
     imgEl.src = currentUser.photoURL || 'https://via.placeholder.com/150';
 
-    if (userLocation) {
-        locEl.innerText = `Lat: ${userLocation.lat.toFixed(4)}, Lng: ${userLocation.lng.toFixed(4)}`;
-    } else {
-        navigator.geolocation.getCurrentPosition(pos => {
-            userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-            if (locEl) locEl.innerText = `Lat: ${userLocation.lat.toFixed(4)}, Lng: ${userLocation.lng.toFixed(4)}`;
+    // Fetch extra details from backend
+    try {
+        const token = await currentUser.getIdToken();
+        const res = await fetch(`${API_BASE_URL}/api/profile/me`, {
+            headers: { 'Authorization': `Bearer ${token}` }
         });
+        const data = await res.json();
+
+        if (data) {
+            nameEl.innerText = data.display_name || currentUser.displayName;
+            imgEl.src = data.photo_url || currentUser.photoURL || 'https://via.placeholder.com/150';
+            
+            if (data.created_at) {
+                const date = new Date(data.created_at);
+                joinedEl.innerText = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            }
+
+            if (data.stats) {
+                friendsStatsEl.innerText = data.stats.friends;
+                followersStatsEl.innerText = data.stats.followers;
+                mutualStatsEl.innerText = data.stats.mutual;
+            }
+
+            if (data.location_lat && data.location_lng) {
+                locEl.innerText = `Lat: ${parseFloat(data.location_lat).toFixed(4)}, Lng: ${parseFloat(data.location_lng).toFixed(4)}`;
+            } else {
+                detectLocation(locEl);
+            }
+        }
+    } catch (e) {
+        console.error("Error fetching profile details:", e);
+        detectLocation(locEl);
     }
+    refreshIcons();
 }
+
+function detectLocation(el) {
+    if (!el) return;
+    navigator.geolocation.getCurrentPosition(pos => {
+        const lat = pos.coords.latitude;
+        const lng = pos.coords.longitude;
+        el.innerText = `Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`;
+        // Optionally sync back to server
+    }, err => {
+        el.innerText = "Location access denied";
+    });
+}
+
+window.openEditModal = () => {
+    const modal = document.getElementById('edit-modal');
+    const nameInput = document.getElementById('edit-name');
+    nameInput.value = currentUser.displayName || '';
+    modal.classList.remove('hidden');
+};
+
+window.closeEditModal = () => {
+    document.getElementById('edit-modal').classList.add('hidden');
+};
+
+window.saveProfileChanges = async () => {
+    const newName = document.getElementById('edit-name').value;
+    if (!newName) return showToast("Name cannot be empty", "error");
+
+    try {
+        const token = await currentUser.getIdToken();
+        
+        // 1. Update Firebase
+        await currentUser.updateProfile({ displayName: newName });
+        
+        // 2. Update Backend
+        await fetch(`${API_BASE_URL}/api/profile/update`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({ name: newName, photoURL: currentUser.photoURL })
+        });
+
+        showToast("Profile updated!", "success");
+        closeEditModal();
+        initProfile();
+        updateUserUI();
+    } catch (e) {
+        showToast("Update failed: " + e.message, "error");
+    }
+};
+
+window.handleProfileUpload = async (input) => {
+    const file = input.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+        return showToast("Image must be smaller than 2MB", "error");
+    }
+
+    const reader = new FileReader();
+    reader.onload = async (e) => {
+        const base64 = e.target.result;
+        try {
+            const token = await currentUser.getIdToken();
+            
+            // In a real app, you'd upload to Firebase Storage. 
+            // Here we'll store in profiles table for simplicity as a base64 string for now
+            // or we can use a dedicated upload endpoint.
+            
+            await fetch(`${API_BASE_URL}/api/profile/update`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ name: currentUser.displayName, photoURL: base64 })
+            });
+
+            await currentUser.updateProfile({ photoURL: base64 });
+            
+            showToast("Profile image updated!", "success");
+            initProfile();
+        } catch (err) {
+            showToast("Upload failed", "error");
+        }
+    };
+    reader.readAsDataURL(file);
+};
 
 function debounce(func, wait) {
     let timeout;
@@ -988,6 +1109,15 @@ window.handleGoogleLogin = async () => {
         await auth.signInWithPopup(provider);
     } catch (err) {
         showToast(err.message, "error");
+    }
+};
+
+window.handleLogout = async () => {
+    try {
+        await auth.signOut();
+        showToast("Logged out successfully", "success");
+    } catch (err) {
+        showToast("Logout failed", "error");
     }
 };
 
