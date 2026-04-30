@@ -1050,6 +1050,7 @@ async function initProfile() {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
+        console.log("DEBUG: Profile data from server:", data);
 
         if (data) {
             nameEl.innerText = data.display_name || currentUser.displayName || 'Anonymous';
@@ -1198,7 +1199,10 @@ window.handleProfileUpload = async (input) => {
                     })
                 });
 
-                if (!res.ok) throw new Error("Server rejected the image");
+                if (!res.ok) {
+                    const errorBody = await res.json().catch(() => ({}));
+                    throw new Error(errorBody.error || "Server rejected the image (check size or connection)");
+                }
 
                 showToast("Profile image updated!", "success");
                 
