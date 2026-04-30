@@ -1289,6 +1289,43 @@ window.handleProfileUpload = async (input) => {
     reader.readAsDataURL(file);
 };
 
+function showToast(message, type = 'info') {
+    const container = document.getElementById('notification-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = `glass-card fade-in toast toast-${type}`;
+    toast.style.cssText = `
+        padding: 0.75rem 1.25rem;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 500;
+        font-size: 0.9rem;
+        border-left: 4px solid ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : 'var(--primary)'};
+        pointer-events: auto;
+        min-width: 200px;
+    `;
+
+    const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info';
+    toast.innerHTML = `
+        <i data-lucide="${icon}" style="width: 18px; color: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : 'var(--primary)'};"></i>
+        <span>${message}</span>
+    `;
+
+    container.appendChild(toast);
+    if (window.lucide) window.lucide.createIcons();
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        toast.style.transition = 'all 0.4s ease';
+        setTimeout(() => toast.remove(), 400);
+    }, 4000);
+}
+
 function debounce(func, wait) {
     let timeout;
     return function(...args) {
