@@ -74,19 +74,22 @@ nav {
   top: 1rem;
   z-index: 1000;
   margin-bottom: 2rem;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-inner {
-  background: rgba(15, 23, 42, 0.8);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--glass-border);
   border-radius: 24px;
   padding: 0.75rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .nav-item {
@@ -97,15 +100,16 @@ nav {
   color: var(--text-muted);
   text-decoration: none;
   font-size: 0.75rem;
-  font-weight: 500;
-  padding: 0.5rem 1rem;
-  border-radius: 12px;
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border-radius: 14px;
   transition: all 0.2s ease;
+  position: relative;
 }
 
 .nav-item.active {
   color: var(--text-main);
-  background: rgba(255,255,255,0.05);
+  background: rgba(255,255,255,0.08);
 }
 
 .nav-item i {
@@ -207,8 +211,8 @@ nav {
 /* --- Grid Layouts --- */
 .user-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fill, minmax(clamp(280px, 45%, 360px), 1fr));
+  gap: 1.25rem;
 }
 
 /* --- Profile Styling --- */
@@ -234,30 +238,56 @@ nav {
   box-shadow: 0 0 30px var(--primary-glow);
 }
 
-/* --- Responsive Adjustments --- */
+/* --- Responsive Matrix --- */
+
+/* Tablet & Smaller Laptops */
+@media (max-width: 1024px) {
+  .container {
+    max-width: 95%;
+  }
+}
+
+/* Mobile & Small Tablets */
 @media (max-width: 768px) {
   nav {
     position: fixed;
     bottom: 1.5rem;
     top: auto;
-    width: calc(100% - 3rem);
-    left: 1.5rem;
+    width: 100%;
+    left: 0;
+    padding: 0 1rem;
+    margin-bottom: 0;
   }
   
   .nav-inner {
-    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    padding: 0.6rem 0.75rem;
   }
 
   .nav-links-text {
     display: none;
   }
 
-  body {
-    padding-bottom: 7rem;
+  .nav-item {
+    padding: 0.5rem;
+    flex: 1;
   }
 
-  .user-grid {
-    grid-template-columns: 1fr;
+  body {
+    padding-bottom: 7.5rem;
+  }
+  
+  h1 { font-size: 2rem; }
+}
+
+/* Ultra Small Devices */
+@media (max-width: 380px) {
+  .nav-logo-text {
+    display: none;
+  }
+  
+  .nav-inner {
+    justify-content: space-around;
   }
 }
 
