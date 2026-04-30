@@ -637,9 +637,11 @@ window.followUser = async (targetUid, btn) => {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
-            btn.innerText = 'Requested';
+            btn.innerText = 'Cancel';
+            btn.onclick = () => cancelRequest(targetUid, btn);
             btn.classList.replace('btn-primary', 'btn-secondary');
-            btn.style.opacity = '0.7';
+            btn.style.opacity = '1';
+            btn.disabled = false;
             showToast("Follow request sent!", "success");
         } else {
             btn.disabled = false;

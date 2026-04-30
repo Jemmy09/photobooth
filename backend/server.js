@@ -238,11 +238,15 @@ app.post('/api/follow/:targetUid', authenticateUser, async (req, res) => {
       VALUES ($1, $2, 'pending')
     `, [req.user.uid, targetUid]);
 
-    // Notify target
+    // Notify target (only if no pending notification of this type exists)
     await pool.query(`
-      INSERT INTO notifications (recipient_uid, sender_uid, type, data)
-      VALUES ($1, $2, 'follow_request', $3)
-    `, [targetUid, req.user.uid, JSON.stringify({ name: req.user.name })]);
+      INSERT INTO notifications (recipient_uid, sender_uid, type)
+      SELECT $1, $2, 'follow_request'
+      WHERE NOT EXISTS (
+        SELECT 1 FROM notifications 
+        WHERE recipient_uid = $1 AND sender_uid = $2 AND type = 'follow_request' AND read = FALSE
+      )
+    `, [targetUid, req.user.uid]);
 
     res.json({ success: true });
   } catch (err) {
@@ -259,6 +263,14 @@ app.delete('/api/follow/:targetUid', authenticateUser, async (req, res) => {
       WHERE (follower_uid = $1 AND following_uid = $2)
          OR (follower_uid = $2 AND following_uid = $1)
     `, [req.user.uid, targetUid]);
+
+    // Also remove any pending notifications between these two
+    await pool.query(`
+      DELETE FROM notifications 
+      WHERE (recipient_uid = $1 AND sender_uid = $2)
+         OR (recipient_uid = $2 AND sender_uid = $1)
+    `, [req.user.uid, targetUid]);
+
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
