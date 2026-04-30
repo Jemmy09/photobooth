@@ -320,16 +320,38 @@ nav {
   height: 18px;
 }
 
-/* --- Mobile Navigation --- */
-@media (max-width: 768px) {
+/* --- Universal Responsive Design --- */
+
+/* Base (Mobile Phones - iOS/Android, < 768px) */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
+}
+
+main#content {
+  padding-bottom: 7rem; /* Make room for bottom nav */
+  transition: padding 0.3s ease;
+  width: 100%;
+}
+
+.glass-card {
+  padding: 1.25rem;
+}
+
+/* Mobile Navigation */
+@media (max-width: 767px) {
   nav {
     top: auto;
-    bottom: 1.5rem;
-    width: calc(100% - 3rem);
+    bottom: 1rem;
+    padding: 0;
+    width: 100%;
   }
   
-  .glass-panel {
-    padding: 0.5rem 1rem;
+  .nav-container {
+    margin: 0 1rem;
+    padding: 0.5rem;
+    border-radius: 24px;
   }
   
   .nav-logo .logo-text,
@@ -339,24 +361,90 @@ nav {
   
   .nav-links {
     gap: 0.25rem;
+    width: 100%;
+    justify-content: space-around;
   }
   
   .nav-item {
     padding: 0.75rem;
+    flex: 1;
+    justify-content: center;
   }
   
-  .nav-item svg {
-    width: 22px;
-    height: 22px;
+  .nav-item i {
+    width: 24px;
+    height: 24px;
   }
 
   .notification-badge {
-    top: 6px;
-    right: 4px;
+    top: 4px;
+    right: calc(50% - 14px);
+    width: 16px;
+    height: 16px;
+    min-width: 16px;
+    font-size: 0.6rem;
+  }
+}
+
+/* Tablets (iPad, 768px - 1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  nav {
+    top: auto;
+    bottom: 1.5rem;
+    padding: 0;
+    width: 100%;
+  }
+  
+  .nav-container {
+    margin: 0 1.5rem;
+    padding: 0.75rem 1.5rem;
+  }
+  
+  .nav-item .nav-label {
+    display: none; /* Keep it clean on tablets */
   }
 
   main#content {
-    padding-bottom: 6rem; /* Make room for bottom nav */
+    padding-bottom: 8rem;
+  }
+  
+  .glass-card {
+    padding: 1.5rem;
+  }
+  
+  .grid-2 {
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* Laptops & Desktops (1024px+) */
+@media (min-width: 1024px) {
+  nav {
+    top: 1.5rem;
+    bottom: auto;
+  }
+
+  main#content {
+    padding-top: 2rem;
+    padding-bottom: 2rem; /* No bottom nav */
+  }
+
+  .nav-container {
+    padding: 0.75rem 2rem;
+  }
+  
+  .glass-card {
+    padding: 2rem;
+  }
+  
+  .grid-2 {
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+  }
+  
+  .camera-preview {
+    max-height: 60vh;
   }
 }
 
@@ -377,19 +465,6 @@ nav {
 .mt-2 { margin-top: 2rem; }
 .mb-1 { margin-bottom: 1rem; }
 .mb-2 { margin-bottom: 2rem; }
-
-/* Grid Layouts */
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1.5rem;
-}
-
-@media (min-width: 768px) {
-  .grid-2 {
-    grid-template-columns: 1fr 1fr;
-  }
-}
 
 /* Animations */
 @keyframes fadeIn {
