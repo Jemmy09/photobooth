@@ -423,12 +423,33 @@ app.post('/api/booth/session/:id/photo', authenticateUser, async (req, res) => {
 // 10. Notifications
 app.get('/api/notifications', authenticateUser, async (req, res) => {
   try {
+    // Get real notifications and merge with any pending follow requests that don't have a notification
     const result = await pool.query(`
-      SELECT n.*, p.display_name as sender_name, p.photo_url as sender_photo
-      FROM notifications n
-      JOIN profiles p ON n.sender_uid = p.uid
-      WHERE n.recipient_uid = $1
-      ORDER BY n.created_at DESC
+      WITH real_notifs AS (
+        SELECT n.id, n.sender_uid, n.type, n.data, n.read, n.created_at, p.display_name as sender_name, p.photo_url as sender_photo
+        FROM notifications n
+        JOIN profiles p ON n.sender_uid = p.uid
+        WHERE n.recipient_uid = $1
+      ),
+      pending_follows AS (
+        SELECT 
+          0 as id, 
+          f.follower_uid as sender_uid, 
+          'follow_request' as type, 
+          '{}'::jsonb as data, 
+          FALSE as read, 
+          f.created_at, 
+          p.display_name as sender_name, 
+          p.photo_url as sender_photo
+        FROM follows f
+        JOIN profiles p ON f.follower_uid = p.uid
+        WHERE f.following_uid = $1 AND f.status = 'pending'
+          AND NOT EXISTS (SELECT 1 FROM notifications WHERE recipient_uid = $1 AND sender_uid = f.follower_uid AND type = 'follow_request' AND read = FALSE)
+      )
+      SELECT * FROM real_notifs
+      UNION ALL
+      SELECT * FROM pending_follows
+      ORDER BY created_at DESC
       LIMIT 50
     `, [req.user.uid]);
     res.json(result.rows);
