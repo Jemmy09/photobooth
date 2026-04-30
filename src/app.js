@@ -757,21 +757,22 @@ function renderFriendsList(friends) {
     container.innerHTML = friends.map(f => {
         const avatarBg = `hsl(${Math.abs(f.uid.charCodeAt(0) * 37) % 360}, 30%, 20%)`;
         const avatarHtml = (f.photo_url && f.photo_url.length > 20)
-            ? `<img src="${f.photo_url}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">`
-            : `<div style="width: 46px; height: 46px; border-radius: 50%; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-muted);"><i data-lucide="user" style="width: 20px; height: 20px;"></i></div>`;
+            ? `<img src="${f.photo_url}" style="width: 50px; height: 50px; border-radius: 14px; object-fit: cover;">`
+            : `<div style="width: 50px; height: 50px; border-radius: 14px; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; color: var(--text-muted); border: 1px solid var(--glass-border);"><i data-lucide="user" style="width: 22px;"></i></div>`;
 
         return `
-        <div class="glass-card" style="display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 1rem; border-left: 3px solid var(--primary);">
+        <div class="glass-card fade-in" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-left: 4px solid var(--primary);">
             <div style="display: flex; align-items: center; gap: 1rem;">
                 ${avatarHtml}
                 <div>
-                    <p style="font-weight: 600; margin: 0;">${f.display_name || 'Unknown'}</p>
-                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Ready to snap</p>
+                    <p style="font-weight: 700; margin: 0; font-size: 1rem;">${f.display_name || 'Anonymous'}</p>
+                    <p class="text-muted" style="font-size: 0.75rem; margin: 0; font-weight: 500;">Connected Friend</p>
                 </div>
             </div>
-            <button onclick="unfollowUser('${f.uid}', this)" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 12px;">Unfriend</button>
+            <button onclick="unfollowUser('${f.uid}', this)" class="btn btn-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.8rem; border-radius: 10px;">Unfriend</button>
         </div>`;
     }).join('');
+    refreshIcons();
 }
 
 function renderMiniFriendsList(friends) {
@@ -873,28 +874,28 @@ function renderSearchResults(users) {
         return;
     }
     container.innerHTML = users.map(u => {
-        let btnHtml = `<button onclick="followUser('${u.uid}', this)" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px;">Send Friend Request</button>`;
+        let btnHtml = `<button onclick="followUser('${u.uid}', this)" class="btn btn-primary" style="padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.85rem;">Connect</button>`;
         
         if (u.sent_status === 'pending') {
-            btnHtml = `<button onclick="cancelRequest('${u.uid}', this)" class="btn btn-retract-now" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px;">Retract Request</button>`;
+            btnHtml = `<button onclick="cancelRequest('${u.uid}', this)" class="btn btn-retract-now" style="padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.85rem;">Retract Request</button>`;
         } else if (u.received_status === 'pending') {
-            btnHtml = `<button onclick="respondFollowRequest('${u.uid}', 'accept', this)" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px;">Accept Friend</button>`;
+            btnHtml = `<button onclick="respondFollowRequest('${u.uid}', 'accept', this)" class="btn btn-primary" style="padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.85rem;">Accept Request</button>`;
         } else if (u.sent_status === 'accepted' || u.received_status === 'accepted') {
-            btnHtml = `<button onclick="unfollowUser('${u.uid}', this)" class="btn btn-icon" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px; background: rgba(244, 63, 94, 0.1); color: var(--accent); border: 1px solid rgba(244, 63, 94, 0.2);">Unfriend</button>`;
+            btnHtml = `<div style="display: flex; align-items: center; gap: 0.5rem; color: #10b981; font-weight: 600; font-size: 0.85rem;"><i data-lucide="check-circle-2" style="width: 16px;"></i> Friends</div>`;
         }
 
         const avatarBg = `hsl(${Math.abs(u.uid.charCodeAt(0) * 37) % 360}, 30%, 20%)`;
         const avatarHtml = (u.photo_url && u.photo_url.length > 50)
-            ? `<img src="${u.photo_url}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">`
-            : `<div style="width: 46px; height: 46px; border-radius: 50%; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-muted); border: 1px solid var(--border);"><i data-lucide="user" style="width: 20px; height: 20px;"></i></div>`;
+            ? `<img src="${u.photo_url}" style="width: 52px; height: 52px; border-radius: 16px; object-fit: cover;">`
+            : `<div style="width: 52px; height: 52px; border-radius: 16px; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; color: var(--text-muted); border: 1px solid var(--glass-border);"><i data-lucide="user" style="width: 24px;"></i></div>`;
 
         return `
-        <div class="glass-card" style="display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 1rem;">
-            <div style="display: flex; align-items: center; gap: 1rem;">
+        <div class="glass-card fade-in" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem;">
+            <div style="display: flex; align-items: center; gap: 1.25rem;">
                 ${avatarHtml}
                 <div>
-                    <p style="font-weight: 600; margin: 0;">${u.display_name || 'Unknown User'}</p>
-                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">${u.email || ''}</p>
+                    <p style="font-weight: 700; margin: 0; font-size: 1.05rem;">${u.display_name || 'Anonymous'}</p>
+                    <p class="text-muted" style="font-size: 0.75rem; margin: 0; font-weight: 500;">${u.email || 'User'}</p>
                 </div>
             </div>
             ${btnHtml}
