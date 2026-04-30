@@ -1056,7 +1056,6 @@ async function initProfile() {
     if (!currentUser) return;
     const nameEl = document.getElementById('profile-name');
     const emailEl = document.getElementById('profile-email');
-    const imgEl = document.getElementById('profile-img');
     const locEl = document.getElementById('profile-location');
     const joinedEl = document.getElementById('profile-joined');
     const friendsStatsEl = document.getElementById('stats-friends');
