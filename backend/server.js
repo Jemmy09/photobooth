@@ -180,8 +180,10 @@ app.get('/api/users/search', authenticateUser, async (req, res) => {
   const { query } = req.query;
   try {
     const result = await pool.query(`
-      SELECT uid, display_name, photo_url FROM profiles
-      WHERE (display_name ILIKE $1 OR email ILIKE $1) AND uid != $2
+      SELECT p.uid, p.display_name, p.photo_url, f.status as follow_status
+      FROM profiles p
+      LEFT JOIN follows f ON (f.follower_uid = $2 AND f.following_uid = p.uid)
+      WHERE (p.display_name ILIKE $1 OR p.email ILIKE $1) AND p.uid != $2
       LIMIT 10
     `, [`%${query}%`, req.user.uid]);
     res.json(result.rows);
@@ -194,11 +196,14 @@ app.get('/api/users/search', authenticateUser, async (req, res) => {
 app.post('/api/follow/:targetUid', authenticateUser, async (req, res) => {
   const { targetUid } = req.params;
   try {
+    // Check if already following
+    const existing = await pool.query("SELECT * FROM follows WHERE follower_uid = $1 AND following_uid = $2", [req.user.uid, targetUid]);
+    if (existing.rows.length > 0) return res.json({ success: true, message: 'Already requested' });
+
     // Create follow request
     await pool.query(`
       INSERT INTO follows (follower_uid, following_uid, status)
       VALUES ($1, $2, 'pending')
-      ON CONFLICT DO NOTHING
     `, [req.user.uid, targetUid]);
 
     // Notify target
@@ -207,6 +212,21 @@ app.post('/api/follow/:targetUid', authenticateUser, async (req, res) => {
       VALUES ($1, $2, 'follow_request', $3)
     `, [targetUid, req.user.uid, JSON.stringify({ name: req.user.name })]);
 
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 3.1 Unfollow / Unfriend
+app.delete('/api/follow/:targetUid', authenticateUser, async (req, res) => {
+  const { targetUid } = req.params;
+  try {
+    await pool.query(`
+      DELETE FROM follows 
+      WHERE (follower_uid = $1 AND following_uid = $2)
+         OR (follower_uid = $2 AND following_uid = $1)
+    `, [req.user.uid, targetUid]);
     res.json({ success: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

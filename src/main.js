@@ -604,25 +604,60 @@ window.respondFollowRequest = async (senderUid, action, btn) => {
 };
 
 window.followUser = async (targetUid, btn) => {
-    if (btn) {
-        btn.innerText = "Requested";
-        btn.disabled = true;
-        btn.style.opacity = "0.7";
-    }
+    if (!currentUser) return;
+    const originalText = btn.innerText;
+    btn.disabled = true;
+    btn.innerText = '...';
+
     try {
         const token = await currentUser.getIdToken();
-        await fetch(`${API_BASE_URL}/api/follow/${targetUid}`, {
+        const res = await fetch(`${API_BASE_URL}/api/follow/${targetUid}`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        showToast("Friend request sent!", "success");
-    } catch (e) {
-        showToast("Error sending request", "error");
-        if (btn) {
-            btn.innerText = "Follow";
+        if (res.ok) {
+            btn.innerText = 'Requested';
+            btn.classList.replace('btn-primary', 'btn-secondary');
+            btn.style.opacity = '0.7';
+            showToast("Follow request sent!", "success");
+        } else {
             btn.disabled = false;
-            btn.style.opacity = "1";
+            btn.innerText = originalText;
         }
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerText = originalText;
+        showToast("Failed to follow", "error");
+    }
+};
+
+window.unfollowUser = async (targetUid, btn) => {
+    if (!currentUser) return;
+    if (!confirm("Are you sure you want to unfriend this user?")) return;
+    
+    const originalContent = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerText = '...';
+
+    try {
+        const token = await currentUser.getIdToken();
+        const res = await fetch(`${API_BASE_URL}/api/follow/${targetUid}`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            showToast("Removed from friends", "info");
+            // Refresh lists
+            fetchFriends();
+            fetchAllUsers();
+        } else {
+            btn.disabled = false;
+            btn.innerHTML = originalContent;
+        }
+    } catch (e) {
+        btn.disabled = false;
+        btn.innerHTML = originalContent;
+        showToast("Action failed", "error");
     }
 };
 
@@ -672,7 +707,7 @@ function renderFriendsList(friends) {
                     <p class="text-muted" style="font-size: 0.8rem;">Ready to snap</p>
                 </div>
             </div>
-            <button onclick="inviteFriend('${f.uid}')" class="btn btn-primary" style="padding: 0.5rem 1rem;">Invite</button>
+            <button onclick="unfollowUser('${f.uid}', this)" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Unfriend</button>
         </div>
     `).join('');
 }
@@ -769,19 +804,18 @@ async function fetchAllUsers() {
 function renderSearchResults(users) {
     const container = document.getElementById('search-results');
     if (!container) return;
-
     if (!users || users.length === 0) {
-        container.innerHTML = `<p class="text-muted" style="text-align:center; padding: 1rem;">No users found.</p>`;
+        container.innerHTML = `<p class="text-muted" style="text-align:center; padding: 1rem; grid-column: 1/-1;">No users found.</p>`;
         return;
     }
-
     container.innerHTML = users.map(u => {
-        const initials = (u.display_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-        const avatarBg = `hsl(${Math.abs(u.uid.charCodeAt(0) * 37) % 360}, 60%, 40%)`;
-        const avatar = u.photo_url
-            ? `<img src="${u.photo_url}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex-shrink: 0;" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-               <div style="display:none; width: 46px; height: 46px; border-radius: 50%; background: ${avatarBg}; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0;">${initials}</div>`
-            : `<div style="display:flex; width: 46px; height: 46px; border-radius: 50%; background: ${avatarBg}; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0;">${initials}</div>`;
+        let btnHtml = `<button onclick="followUser('${u.uid}', this)" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Follow</button>`;
+        
+        if (u.follow_status === 'pending') {
+            btnHtml = `<button disabled class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; opacity: 0.7;">Requested</button>`;
+        } else if (u.follow_status === 'accepted') {
+            btnHtml = `<button onclick="unfollowUser('${u.uid}', this)" class="btn btn-icon" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: rgba(244, 63, 94, 0.1); color: var(--accent); border: 1px solid rgba(244, 63, 94, 0.2);">Unfriend</button>`;
+        }
 
         return `
         <div class="glass-card" style="display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 1rem; transition: border-color 0.2s;">
