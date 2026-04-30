@@ -1031,10 +1031,11 @@ async function initProfile() {
     const followersStatsEl = document.getElementById('stats-followers');
     const mutualStatsEl = document.getElementById('stats-mutual');
 
-    // Initial load from Firebase
+    // Initial UI state from Firebase
     nameEl.innerText = currentUser.displayName || 'Anonymous';
     emailEl.innerText = currentUser.email;
-    imgEl.src = (currentUser.photoURL && currentUser.photoURL.length > 20) ? currentUser.photoURL : 'https://via.placeholder.com/150';
+    const initials = (currentUser.displayName || 'U').charAt(0).toUpperCase();
+    document.getElementById('profile-initials').innerText = initials;
 
     // Fetch extra details from backend
     try {
@@ -1046,7 +1047,20 @@ async function initProfile() {
 
         if (data) {
             nameEl.innerText = data.display_name || currentUser.displayName || 'Anonymous';
-            imgEl.src = (data.photo_url && data.photo_url.length > 20) ? data.photo_url : ((currentUser.photoURL && currentUser.photoURL.length > 20) ? currentUser.photoURL : 'https://via.placeholder.com/150');
+            
+            const hasPhoto = data.photo_url && data.photo_url.length > 20;
+            const profileImg = document.getElementById('profile-img');
+            const profileInitials = document.getElementById('profile-initials');
+            
+            if (hasPhoto) {
+                profileImg.src = data.photo_url;
+                profileImg.style.display = 'block';
+                profileInitials.style.display = 'none';
+            } else {
+                profileImg.style.display = 'none';
+                profileInitials.style.display = 'block';
+                profileInitials.innerText = (data.display_name || currentUser.displayName || 'U').charAt(0).toUpperCase();
+            }
             
             if (data.created_at) {
                 const date = new Date(data.created_at);
@@ -1054,7 +1068,6 @@ async function initProfile() {
             }
 
             if (data.stats) {
-                // Following is mapped to "Friends" in the UI as per user's earlier preference
                 friendsStatsEl.innerText = data.stats.friends || 0;
                 followersStatsEl.innerText = data.stats.followers || 0;
                 mutualStatsEl.innerText = data.stats.mutual || 0;
