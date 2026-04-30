@@ -1046,9 +1046,10 @@ async function initProfile() {
             }
 
             if (data.stats) {
-                friendsStatsEl.innerText = data.stats.friends;
-                followersStatsEl.innerText = data.stats.followers;
-                mutualStatsEl.innerText = data.stats.mutual;
+                // Following is mapped to "Friends" in the UI as per user's earlier preference
+                friendsStatsEl.innerText = data.stats.friends || 0;
+                followersStatsEl.innerText = data.stats.followers || 0;
+                mutualStatsEl.innerText = data.stats.mutual || 0;
             }
 
             if (data.location_lat && data.location_lng) {
@@ -1127,14 +1128,12 @@ window.handleProfileUpload = async (input) => {
     const reader = new FileReader();
     reader.onload = async (e) => {
         const base64 = e.target.result;
+        showToast("Uploading...", "info");
         try {
             const token = await currentUser.getIdToken();
             
-            // In a real app, you'd upload to Firebase Storage. 
-            // Here we'll store in profiles table for simplicity as a base64 string for now
-            // or we can use a dedicated upload endpoint.
-            
-            await fetch(`${API_BASE_URL}/api/profile/update`, {
+            // Update our database (primary source)
+            const res = await fetch(`${API_BASE_URL}/api/profile/update`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -1143,12 +1142,20 @@ window.handleProfileUpload = async (input) => {
                 body: JSON.stringify({ name: currentUser.displayName, photoURL: base64 })
             });
 
-            await currentUser.updateProfile({ photoURL: base64 });
+            if (!res.ok) throw new Error("Server rejected the image (too large?)");
+
+            // Update Firebase display photo (optional/best effort)
+            try {
+                await currentUser.updateProfile({ photoURL: base64 });
+            } catch(e) {
+                console.warn("Firebase profile sync failed, but database is updated.");
+            }
             
             showToast("Profile image updated!", "success");
             initProfile();
         } catch (err) {
-            showToast("Upload failed", "error");
+            console.error(err);
+            showToast(err.message || "Upload failed", "error");
         }
     };
     reader.readAsDataURL(file);

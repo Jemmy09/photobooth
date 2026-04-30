@@ -82,7 +82,8 @@ const corsOptions = {
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
 // Firebase Admin Initialization
 let serviceAccount;
@@ -142,18 +143,24 @@ app.get('/api/profile/me', authenticateUser, async (req, res) => {
     const userRes = await pool.query('SELECT *, created_at FROM profiles WHERE uid = $1', [req.user.uid]);
     const user = userRes.rows[0];
 
-    // Stats
-    const friendsCount = await pool.query("SELECT COUNT(*) FROM follows WHERE (follower_uid = $1 OR following_uid = $1) AND status = 'accepted'", [req.user.uid]);
-    const followersCount = await pool.query("SELECT COUNT(*) FROM follows WHERE following_uid = $1", [req.user.uid]);
-    const followingCount = await pool.query("SELECT COUNT(*) FROM follows WHERE follower_uid = $1", [req.user.uid]);
+    // Stats logic:
+    // Followers: People who follow me
+    const followersRes = await pool.query("SELECT COUNT(*) FROM follows WHERE following_uid = $1", [req.user.uid]);
+    // Following: People I follow
+    const followingRes = await pool.query("SELECT COUNT(*) FROM follows WHERE follower_uid = $1", [req.user.uid]);
+    // Mutual: People I follow who follow me back (both accepted)
+    const mutualRes = await pool.query(`
+      SELECT COUNT(*) FROM follows f1
+      JOIN follows f2 ON f1.follower_uid = f2.following_uid AND f1.following_uid = f2.follower_uid
+      WHERE f1.follower_uid = $1 AND f1.status = 'accepted' AND f2.status = 'accepted'
+    `, [req.user.uid]);
 
     res.json({
       ...user,
       stats: {
-        friends: parseInt(friendsCount.rows[0].count),
-        followers: parseInt(followersCount.rows[0].count),
-        following: parseInt(followingCount.rows[0].count),
-        mutual: 0 // For my own profile, this is 0 or could be 'true' friends
+        friends: parseInt(followingRes.rows[0].count),
+        followers: parseInt(followersRes.rows[0].count),
+        mutual: parseInt(mutualRes.rows[0].count)
       }
     });
   } catch (err) {
