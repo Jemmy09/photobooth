@@ -1142,42 +1142,79 @@ window.handleProfileUpload = async (input) => {
     const file = input.files[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-        return showToast("Image must be smaller than 2MB", "error");
+    if (file.size > 5 * 1024 * 1024) {
+        return showToast("Image must be smaller than 5MB", "error");
     }
+
+    showToast("Processing image...", "info");
 
     const reader = new FileReader();
     reader.onload = async (e) => {
-        const base64 = e.target.result;
-        showToast("Uploading...", "info");
-        try {
-            const token = await currentUser.getIdToken();
-            
-            // Update our database (primary source)
-            const res = await fetch(`${API_BASE_URL}/api/profile/update`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ name: currentUser.displayName, photoURL: base64 })
-            });
+        const img = new Image();
+        img.onload = async () => {
+            // Resize image for reliability
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
+            let width = img.width;
+            let height = img.height;
 
-            if (!res.ok) throw new Error("Server rejected the image (too large?)");
-
-            // Update Firebase display photo (optional/best effort)
-            try {
-                await currentUser.updateProfile({ photoURL: base64 });
-            } catch(e) {
-                console.warn("Firebase profile sync failed, but database is updated.");
+            if (width > height) {
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+            } else {
+                if (height > MAX_HEIGHT) {
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
+                }
             }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
             
-            showToast("Profile image updated!", "success");
-            initProfile();
-        } catch (err) {
-            console.error(err);
-            showToast(err.message || "Upload failed", "error");
-        }
+            // Compress to JPEG
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+
+            try {
+                showToast("Uploading...", "info");
+                const token = await currentUser.getIdToken();
+                
+                const res = await fetch(`${API_BASE_URL}/api/profile/update`, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ 
+                        name: currentUser.displayName, 
+                        photoURL: compressedBase64 
+                    })
+                });
+
+                if (!res.ok) throw new Error("Server rejected the image");
+
+                showToast("Profile image updated!", "success");
+                
+                // Immediate UI update
+                const profileImg = document.getElementById('profile-img');
+                const profileInitials = document.getElementById('profile-initials');
+                if (profileImg && profileInitials) {
+                    profileImg.src = compressedBase64;
+                    profileImg.style.display = 'block';
+                    profileInitials.style.display = 'none';
+                }
+                
+                initProfile(); // Refresh everything else
+            } catch (err) {
+                console.error(err);
+                showToast("Upload failed: " + err.message, "error");
+            }
+        };
+        img.src = e.target.result;
     };
     reader.readAsDataURL(file);
 };
