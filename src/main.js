@@ -38,8 +38,7 @@ const notificationContainer = document.getElementById('notification-container');
 // --- Initialization ---
 function init() {
     auth.onAuthStateChanged(user => {
-        currentUser = user;
-        if (user) {
+            console.log("🚀 PhotoBooth v1.2.0 - Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             
@@ -879,11 +878,10 @@ function renderSearchResults(users) {
             btnHtml = `<button onclick="unfollowUser('${u.uid}', this)" class="btn btn-icon" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px; background: rgba(244, 63, 94, 0.1); color: var(--accent); border: 1px solid rgba(244, 63, 94, 0.2);">Unfriend</button>`;
         }
 
-        const initials = (u.display_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-        const avatarBg = `hsl(${Math.abs(u.uid.charCodeAt(0) * 37) % 360}, 60%, 40%)`;
-        const avatarHtml = u.photo_url
+        const avatarBg = `hsl(${Math.abs(u.uid.charCodeAt(0) * 37) % 360}, 30%, 20%)`;
+        const avatarHtml = (u.photo_url && u.photo_url.length > 50)
             ? `<img src="${u.photo_url}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">`
-            : `<div style="width: 46px; height: 46px; border-radius: 50%; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; color: white;">${initials}</div>`;
+            : `<div style="width: 46px; height: 46px; border-radius: 50%; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--text-muted); border: 1px solid var(--border);"><i data-lucide="user" style="width: 20px; height: 20px;"></i></div>`;
 
         return `
         <div class="glass-card" style="display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 1rem;">
