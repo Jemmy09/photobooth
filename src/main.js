@@ -13,7 +13,7 @@ const firebaseConfig = {
     appId: import.meta.env.VITE_FIREBASE_APP_ID || "1:173251953667:web:fad45aaa1826aa4a9aba36"
 };
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3010'; // Dynamically switch API URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://photobooth-backend-sdyv.onrender.com'; // Dynamically switch API URL
 
 // Initialize Firebase
 if (!firebase.apps.length) {

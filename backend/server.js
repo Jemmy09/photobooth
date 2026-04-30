@@ -71,7 +71,7 @@ const pool = new Pool({
 const app = express();
 // Configure CORS to restrict origins in production
 const corsOptions = {
-  origin: process.env.CLIENT_URL || 'http://localhost:5173', // Default Vite port
+  origin: ['http://localhost:5173', 'http://localhost:3010', 'https://jemmy09.github.io', process.env.CLIENT_URL].filter(Boolean),
   optionsSuccessStatus: 200
 };
 app.use(cors(corsOptions));
