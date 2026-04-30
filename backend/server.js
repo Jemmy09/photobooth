@@ -180,10 +180,20 @@ app.get('/api/users/search', authenticateUser, async (req, res) => {
   const { query } = req.query;
   try {
     const result = await pool.query(`
-      SELECT p.uid, p.display_name, p.photo_url, f.status as follow_status
+      SELECT p.uid, p.display_name, p.photo_url, 
+             (SELECT status FROM follows 
+              WHERE (follower_uid = $2 AND following_uid = p.uid)
+                 OR (follower_uid = p.uid AND following_uid = $2)
+              LIMIT 1) as follow_status
       FROM profiles p
-      LEFT JOIN follows f ON (f.follower_uid = $2 AND f.following_uid = p.uid)
-      WHERE (p.display_name ILIKE $1 OR p.email ILIKE $1) AND p.uid != $2
+      WHERE (p.display_name ILIKE $1 OR p.email ILIKE $1) 
+        AND p.uid != $2
+        AND NOT EXISTS (
+          SELECT 1 FROM follows 
+          WHERE status = 'accepted' 
+            AND ((follower_uid = $2 AND following_uid = p.uid) 
+             OR (follower_uid = p.uid AND following_uid = $2))
+        )
       LIMIT 10
     `, [`%${query}%`, req.user.uid]);
     res.json(result.rows);
