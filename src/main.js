@@ -505,6 +505,8 @@ setInterval(async () => {
                     newCount++;
                     if (n.type === 'booth_invite') {
                         showBoothInvite(n);
+                    } else if (n.type === 'follow_request') {
+                        showFollowRequest(n);
                     } else {
                         showToast(`${n.sender_name}: ${n.type.replace('_', ' ')}`, 'info');
                     }
@@ -564,16 +566,63 @@ window.respondInvite = async (sessionId, action, btn) => {
     }
 };
 
-window.followUser = async (targetUid) => {
+function showFollowRequest(n) {
+    const toast = document.createElement('div');
+    toast.className = `glass-card fade-in`;
+    toast.style.padding = '1rem';
+    toast.style.position = 'fixed';
+    toast.style.top = '5rem';
+    toast.style.right = '1rem';
+    toast.style.zIndex = '2000';
+    toast.innerHTML = `
+        <p class="mb-1"><strong>${n.sender_name}</strong> sent a friend request!</p>
+        <div class="flex-center" style="gap: 0.5rem;">
+            <button onclick="respondFollowRequest('${n.sender_uid}', 'accept', this)" class="btn btn-primary" style="padding: 0.4rem 1rem;">Accept</button>
+            <button onclick="respondFollowRequest('${n.sender_uid}', 'reject', this)" class="btn btn-secondary" style="padding: 0.4rem 1rem;">Reject</button>
+        </div>
+    `;
+    document.body.appendChild(toast);
+}
+
+window.respondFollowRequest = async (senderUid, action, btn) => {
+    try {
+        const token = await currentUser.getIdToken();
+        await fetch(`${API_BASE_URL}/api/follow/respond/${senderUid}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ action })
+        });
+        showToast(action === 'accept' ? "Friend request accepted!" : "Friend request rejected.", "success");
+        if (action === 'accept') fetchFriends();
+        if (btn && btn.parentElement && btn.parentElement.parentElement) {
+            btn.parentElement.parentElement.remove();
+        }
+        if (currentView === 'notifications') initNotifications();
+    } catch (e) {
+        showToast("Error responding to request", "error");
+    }
+};
+
+window.followUser = async (targetUid, btn) => {
+    if (btn) {
+        btn.innerText = "Requested";
+        btn.disabled = true;
+        btn.style.opacity = "0.7";
+    }
     try {
         const token = await currentUser.getIdToken();
         await fetch(`${API_BASE_URL}/api/follow/${targetUid}`, {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        showToast("Follow request sent!", "success");
+        showToast("Friend request sent!", "success");
     } catch (e) {
         showToast("Error sending request", "error");
+        if (btn) {
+            btn.innerText = "Follow";
+            btn.disabled = false;
+            btn.style.opacity = "1";
+        }
     }
 };
 
@@ -724,7 +773,7 @@ function renderSearchResults(users) {
                     <p class="text-muted" style="font-size: 0.8rem; margin: 0;">${u.email || ''}</p>
                 </div>
             </div>
-            <button onclick="followUser('${u.uid}')" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px; flex-shrink: 0;">Follow</button>
+            <button onclick="followUser('${u.uid}', this)" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px; flex-shrink: 0;">Follow</button>
         </div>`;
     }).join('');
 }
@@ -761,18 +810,28 @@ async function initNotifications() {
 
         container.innerHTML = notifications.map(n => {
             let actionHtml = '';
+            let messageText = `${n.type.replace('_', ' ')}`;
             if (n.type === 'booth_invite') {
                 const data = JSON.parse(n.data || '{}');
+                messageText = `invited you to a PhotoBooth session!`;
                 actionHtml = `
                     <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
                         <button onclick="respondInvite(${data.sessionId}, 'accept', this)" class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">Accept</button>
                         <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">Dismiss</button>
                     </div>
                 `;
+            } else if (n.type === 'follow_request') {
+                messageText = `sent you a friend request!`;
+                actionHtml = `
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                        <button onclick="respondFollowRequest('${n.sender_uid}', 'accept', this)" class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">Accept</button>
+                        <button onclick="respondFollowRequest('${n.sender_uid}', 'reject', this)" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">Reject</button>
+                    </div>
+                `;
             }
             return `
                 <div class="glass-card" style="padding: 1rem; border-left: 3px solid var(--primary);">
-                    <p style="margin: 0; font-weight: 500;"><strong>${n.sender_name}</strong>: ${n.type.replace('_', ' ')}</p>
+                    <p style="margin: 0; font-weight: 500;"><strong>${n.sender_name}</strong> ${messageText}</p>
                     ${actionHtml}
                 </div>
             `;
