@@ -556,6 +556,25 @@ main#content {
   pointer-events: auto;
   transition: opacity 0.3s, transform 0.3s;
 }
+/* Cancel Button Premium Style */
+.btn-cancel {
+    background: rgba(244, 63, 94, 0.08);
+    color: var(--accent);
+    border: 1px solid rgba(244, 63, 94, 0.2);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-cancel:hover {
+    background: var(--accent);
+    color: white;
+    box-shadow: 0 0 15px rgba(244, 63, 94, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-cancel:active {
+    transform: scale(0.95);
+}
+
 /* Notification Specifics */
 .notification-item {
     cursor: pointer;
