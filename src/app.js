@@ -638,9 +638,9 @@ window.followUser = async (targetUid, btn) => {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
-            btn.innerText = 'Cancel Request';
+            btn.innerText = 'Retract Request';
             btn.onclick = () => cancelRequest(targetUid, btn);
-            btn.className = 'btn btn-cancel';
+            btn.className = 'btn btn-retract-now';
             btn.style.opacity = '1';
             btn.disabled = false;
             showToast("Follow request sent!", "success");
@@ -688,7 +688,7 @@ window.unfollowUser = async (targetUid, btn) => {
 window.cancelRequest = async (targetUid, btn) => {
     if (!currentUser) return;
     
-    const originalText = btn.innerText;
+    const originalText = 'Retract Request';
     btn.disabled = true;
     btn.innerText = '...';
 
@@ -873,10 +873,10 @@ function renderSearchResults(users) {
         return;
     }
     container.innerHTML = users.map(u => {
-        let btnHtml = `<button onclick="followUser('${u.uid}', this)" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px;">Follow</button>`;
+        let btnHtml = `<button onclick="followUser('${u.uid}', this)" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px;">Send Friend Request</button>`;
         
         if (u.follow_status === 'pending') {
-            btnHtml = `<button onclick="cancelRequest('${u.uid}', this)" class="btn btn-cancel" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px;">Cancel Request</button>`;
+            btnHtml = `<button onclick="cancelRequest('${u.uid}', this)" class="btn btn-retract-now" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px;">Retract Request</button>`;
         } else if (u.follow_status === 'accepted') {
             btnHtml = `<button onclick="unfollowUser('${u.uid}', this)" class="btn btn-icon" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px; background: rgba(244, 63, 94, 0.1); color: var(--accent); border: 1px solid rgba(244, 63, 94, 0.2);">Unfriend</button>`;
         }
