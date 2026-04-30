@@ -32,6 +32,9 @@ const pool = new Pool({
         created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
       );
     `);
+    
+    // Ensure created_at exists for older tables
+    await pool.query("ALTER TABLE profiles ADD COLUMN IF NOT EXISTS created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP");
 
     // Friendships (Follower/Following)
     await pool.query(`
