@@ -61,15 +61,20 @@ function setupEventListeners() {
         if (link) {
             e.preventDefault();
             showView(link.dataset.link);
+            
+            // Highlight active nav item
+            document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
+            if (link.classList.contains('nav-item')) {
+                link.classList.add('active');
+            } else {
+                // If clicked from somewhere else (like a button), find the nav item
+                const navItem = document.querySelector(`.nav-item[data-link="${link.dataset.link}"]`);
+                if(navItem) navItem.classList.add('active');
+            }
         }
 
         if (e.target.closest('#logout-btn')) {
             auth.signOut();
-        }
-
-        if (e.target.closest('#menu-toggle')) {
-            const navLinks = document.querySelector('.nav-links');
-            navLinks.classList.toggle('active');
         }
     });
 }
@@ -93,6 +98,7 @@ function showView(view) {
         if (view === 'booth') initBooth();
         if (view === 'friends') initFriends();
         if (view === 'profile') initProfile();
+        if (view === 'notifications') initNotifications();
         
         window.scrollTo(0, 0);
         refreshIcons();
@@ -721,6 +727,71 @@ function renderSearchResults(users) {
             <button onclick="followUser('${u.uid}')" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px; flex-shrink: 0;">Follow</button>
         </div>`;
     }).join('');
+}
+
+
+
+async function initNotifications() {
+    // Clear badge
+    unreadNotifCount = 0;
+    const badge = document.getElementById('nav-notification-badge');
+    if (badge) {
+        badge.classList.add('hidden');
+        badge.style.display = 'none';
+        badge.textContent = '';
+    }
+
+    const container = document.getElementById('notifications-list');
+    if (!container || !currentUser) return;
+
+    try {
+        const res = await fetch(`${API_BASE_URL}/api/notifications`, {
+            headers: { 'Authorization': `Bearer ${await currentUser.getIdToken()}` }
+        });
+        const notifications = await res.json();
+        
+        if (notifications.length === 0) {
+            container.innerHTML = `
+                <div class="flex-center" style="height: 150px; border: 2px dashed var(--border); border-radius: 12px;">
+                    <p class="text-muted">No new notifications</p>
+                </div>
+            `;
+            return;
+        }
+
+        container.innerHTML = notifications.map(n => {
+            let actionHtml = '';
+            if (n.type === 'booth_invite') {
+                const data = JSON.parse(n.data || '{}');
+                actionHtml = `
+                    <div style="display: flex; gap: 0.5rem; margin-top: 0.5rem;">
+                        <button onclick="respondInvite(${data.sessionId}, 'accept', this)" class="btn btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">Accept</button>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;">Dismiss</button>
+                    </div>
+                `;
+            }
+            return `
+                <div class="glass-card" style="padding: 1rem; border-left: 3px solid var(--primary);">
+                    <p style="margin: 0; font-weight: 500;"><strong>${n.sender_name}</strong>: ${n.type.replace('_', ' ')}</p>
+                    ${actionHtml}
+                </div>
+            `;
+        }).join('');
+        
+        const clearBtn = document.getElementById('clear-notifications');
+        if (clearBtn) {
+            clearBtn.onclick = () => {
+                container.innerHTML = `
+                    <div class="flex-center" style="height: 150px; border: 2px dashed var(--border); border-radius: 12px;">
+                        <p class="text-muted">No new notifications</p>
+                    </div>
+                `;
+            };
+        }
+        refreshIcons();
+    } catch (e) {
+        console.error("Error fetching notifications:", e);
+    }
 }
 
 // --- Utilities ---
