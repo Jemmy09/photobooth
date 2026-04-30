@@ -689,27 +689,34 @@ function renderFriendsList(friends) {
     const container = document.getElementById('friends-list');
     if (!container) return;
     
-    if (friends.length === 0) {
+    if (!friends || friends.length === 0) {
         container.innerHTML = `
-            <div class="glass-card flex-center" style="grid-column: 1 / -1; height: 150px; border-style: dashed;">
-                <p class="text-muted">No friends added yet.</p>
+            <div class="glass-card flex-center" style="grid-column: 1 / -1; height: 150px; border-style: dashed; border-color: rgba(255,255,255,0.1);">
+                <p class="text-muted">No friends yet. Search for users above!</p>
             </div>
         `;
         return;
     }
 
-    container.innerHTML = friends.map(f => `
-        <div class="glass-card" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem;">
+    container.innerHTML = friends.map(f => {
+        const initials = (f.display_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        const avatarBg = `hsl(${Math.abs(f.uid.charCodeAt(0) * 37) % 360}, 60%, 40%)`;
+        const avatarHtml = f.photo_url
+            ? `<img src="${f.photo_url}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">`
+            : `<div style="width: 46px; height: 46px; border-radius: 50%; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; color: white;">${initials}</div>`;
+
+        return `
+        <div class="glass-card" style="display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 1rem; border-left: 3px solid var(--primary);">
             <div style="display: flex; align-items: center; gap: 1rem;">
-                <img src="${f.photo_url || 'https://via.placeholder.com/40'}" style="width: 45px; height: 45px; border-radius: 50%; object-fit: cover;">
+                ${avatarHtml}
                 <div>
-                    <p style="font-weight: 600;">${f.display_name}</p>
-                    <p class="text-muted" style="font-size: 0.8rem;">Ready to snap</p>
+                    <p style="font-weight: 600; margin: 0;">${f.display_name || 'Unknown'}</p>
+                    <p class="text-muted" style="font-size: 0.8rem; margin: 0;">Ready to snap</p>
                 </div>
             </div>
-            <button onclick="unfollowUser('${f.uid}', this)" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Unfriend</button>
-        </div>
-    `).join('');
+            <button onclick="unfollowUser('${f.uid}', this)" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 12px;">Unfriend</button>
+        </div>`;
+    }).join('');
 }
 
 function renderMiniFriendsList(friends) {
@@ -809,24 +816,30 @@ function renderSearchResults(users) {
         return;
     }
     container.innerHTML = users.map(u => {
-        let btnHtml = `<button onclick="followUser('${u.uid}', this)" class="btn btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">Follow</button>`;
+        let btnHtml = `<button onclick="followUser('${u.uid}', this)" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px;">Follow</button>`;
         
         if (u.follow_status === 'pending') {
-            btnHtml = `<button disabled class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; opacity: 0.7;">Requested</button>`;
+            btnHtml = `<button disabled class="btn btn-secondary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px; opacity: 0.7;">Requested</button>`;
         } else if (u.follow_status === 'accepted') {
-            btnHtml = `<button onclick="unfollowUser('${u.uid}', this)" class="btn btn-icon" style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: rgba(244, 63, 94, 0.1); color: var(--accent); border: 1px solid rgba(244, 63, 94, 0.2);">Unfriend</button>`;
+            btnHtml = `<button onclick="unfollowUser('${u.uid}', this)" class="btn btn-icon" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px; background: rgba(244, 63, 94, 0.1); color: var(--accent); border: 1px solid rgba(244, 63, 94, 0.2);">Unfriend</button>`;
         }
 
+        const initials = (u.display_name || 'U').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+        const avatarBg = `hsl(${Math.abs(u.uid.charCodeAt(0) * 37) % 360}, 60%, 40%)`;
+        const avatarHtml = u.photo_url
+            ? `<img src="${u.photo_url}" style="width: 46px; height: 46px; border-radius: 50%; object-fit: cover; flex-shrink: 0;">`
+            : `<div style="width: 46px; height: 46px; border-radius: 50%; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; flex-shrink: 0; color: white;">${initials}</div>`;
+
         return `
-        <div class="glass-card" style="display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 1rem; transition: border-color 0.2s;">
+        <div class="glass-card" style="display: flex; align-items: center; justify-content: space-between; padding: 0.9rem 1rem;">
             <div style="display: flex; align-items: center; gap: 1rem;">
-                ${avatar}
+                ${avatarHtml}
                 <div>
                     <p style="font-weight: 600; margin: 0;">${u.display_name || 'Unknown User'}</p>
                     <p class="text-muted" style="font-size: 0.8rem; margin: 0;">${u.email || ''}</p>
                 </div>
             </div>
-            <button onclick="followUser('${u.uid}', this)" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px; flex-shrink: 0;">Follow</button>
+            ${btnHtml}
         </div>`;
     }).join('');
 }
