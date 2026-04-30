@@ -93,6 +93,7 @@ nav {
     0 20px 40px rgba(0,0,0,0.5),
     0 0 20px rgba(99, 102, 241, 0.1);
   margin: 0 auto;
+  width: 95%; /* Responsive width */
   max-width: 480px;
 }
 
@@ -105,11 +106,12 @@ nav {
   text-decoration: none;
   font-size: 0.7rem;
   font-weight: 600;
-  padding: 0.6rem;
+  padding: 0.6rem 0.4rem; /* Reduced padding for mobile */
   border-radius: 14px;
   transition: all 0.2s ease;
   flex: 1;
   text-align: center;
+  min-width: 0; /* Allow shrinking */
 }
 
 .nav-item.active {
@@ -206,6 +208,23 @@ input[type="text"], input[type="email"], input[type="password"] {
   .nav-item { flex-direction: row; gap: 8px; font-size: 0.85rem; padding: 0.6rem 1.2rem; flex: initial; }
   
   .profile-banner { height: 180px; }
+}
+
+/* Ultra Small Devices */
+@media (max-width: 500px) {
+  .nav-logo-text {
+    display: none !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .logo {
+    display: none !important;
+  }
+  
+  .nav-inner {
+    justify-content: space-around;
+  }
 }
 
 /* Desktop & Laptop */
