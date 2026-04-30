@@ -638,7 +638,7 @@ window.followUser = async (targetUid, btn) => {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
-            btn.innerText = 'Cancel';
+            btn.innerText = 'Cancel Request';
             btn.onclick = () => cancelRequest(targetUid, btn);
             btn.className = 'btn btn-cancel';
             btn.style.opacity = '1';
@@ -876,7 +876,7 @@ function renderSearchResults(users) {
         let btnHtml = `<button onclick="followUser('${u.uid}', this)" class="btn btn-primary" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px;">Follow</button>`;
         
         if (u.follow_status === 'pending') {
-            btnHtml = `<button onclick="cancelRequest('${u.uid}', this)" class="btn btn-cancel" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px;">Cancel</button>`;
+            btnHtml = `<button onclick="cancelRequest('${u.uid}', this)" class="btn btn-cancel" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px;">Cancel Request</button>`;
         } else if (u.follow_status === 'accepted') {
             btnHtml = `<button onclick="unfollowUser('${u.uid}', this)" class="btn btn-icon" style="padding: 0.45rem 1.2rem; font-size: 0.85rem; border-radius: 20px; background: rgba(244, 63, 94, 0.1); color: var(--accent); border: 1px solid rgba(244, 63, 94, 0.2);">Unfriend</button>`;
         }
