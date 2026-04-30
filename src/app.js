@@ -638,7 +638,7 @@ window.followUser = async (targetUid, btn) => {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         if (res.ok) {
-            btn.innerText = 'Retract Request';
+            btn.innerText = 'Cancel Request';
             btn.onclick = () => cancelRequest(targetUid, btn);
             btn.className = 'btn btn-retract-now';
             btn.style.opacity = '1';
@@ -688,7 +688,7 @@ window.unfollowUser = async (targetUid, btn) => {
 window.cancelRequest = async (targetUid, btn) => {
     if (!currentUser) return;
     
-    const originalText = 'Retract Request';
+    const originalText = 'Cancel Request';
     btn.disabled = true;
     btn.innerText = '...';
 
@@ -874,12 +874,12 @@ function renderSearchResults(users) {
         return;
     }
     container.innerHTML = users.map(u => {
-        let btnHtml = `<button onclick="followUser('${u.uid}', this)" class="btn btn-primary" style="padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.85rem;">Connect</button>`;
+        let btnHtml = `<button onclick="followUser('${u.uid}', this)" class="btn btn-primary" style="padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.85rem;">Follow</button>`;
         
         if (u.sent_status === 'pending') {
-            btnHtml = `<button onclick="cancelRequest('${u.uid}', this)" class="btn btn-retract-now" style="padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.85rem;">Retract Request</button>`;
+            btnHtml = `<button onclick="cancelRequest('${u.uid}', this)" class="btn btn-retract-now" style="padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.85rem;">Cancel Request</button>`;
         } else if (u.received_status === 'pending') {
-            btnHtml = `<button onclick="respondFollowRequest('${u.uid}', 'accept', this)" class="btn btn-primary" style="padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.85rem;">Accept Request</button>`;
+            btnHtml = `<button onclick="respondFollowRequest('${u.uid}', 'accept', this)" class="btn btn-primary" style="padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.85rem;">Accept Friend</button>`;
         } else if (u.sent_status === 'accepted' || u.received_status === 'accepted') {
             btnHtml = `<div style="display: flex; align-items: center; gap: 0.5rem; color: #10b981; font-weight: 600; font-size: 0.85rem;"><i data-lucide="check-circle-2" style="width: 16px;"></i> Friends</div>`;
         }
@@ -1505,3 +1505,5 @@ document.addEventListener('submit', async (e) => {
         }
     }
 });
+
+init();
