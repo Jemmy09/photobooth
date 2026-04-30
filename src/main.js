@@ -1028,12 +1028,20 @@ async function initProfile() {
     const friendsStatsEl = document.getElementById('stats-friends');
     const followersStatsEl = document.getElementById('stats-followers');
     const mutualStatsEl = document.getElementById('stats-mutual');
+    const profileImg = document.getElementById('profile-img');
+    const profileFallback = document.getElementById('profile-icon-fallback');
 
     // Initial UI state from Firebase
     nameEl.innerText = currentUser.displayName || 'Anonymous';
     emailEl.innerText = currentUser.email;
-    document.getElementById('profile-img').style.display = 'none';
-    document.getElementById('profile-icon-fallback').style.display = 'block';
+    profileImg.style.display = 'none';
+    profileFallback.style.display = 'block';
+    if (profileImg) {
+        profileImg.onerror = () => {
+            profileImg.style.display = 'none';
+            profileFallback.style.display = 'block';
+        };
+    }
 
     // Fetch extra details from backend
     try {
@@ -1046,9 +1054,7 @@ async function initProfile() {
         if (data) {
             nameEl.innerText = data.display_name || currentUser.displayName || 'Anonymous';
             
-            const hasPhoto = data.photo_url && data.photo_url.length > 20;
-            const profileImg = document.getElementById('profile-img');
-            const profileFallback = document.getElementById('profile-icon-fallback');
+            const hasPhoto = data.photo_url && data.photo_url.length > 50;
             
             if (hasPhoto) {
                 profileImg.src = data.photo_url;
@@ -1196,16 +1202,17 @@ window.handleProfileUpload = async (input) => {
 
                 showToast("Profile image updated!", "success");
                 
-                // Immediate UI update
+                // Immediate local UI update
                 const profileImg = document.getElementById('profile-img');
-                const profileInitials = document.getElementById('profile-initials');
-                if (profileImg && profileInitials) {
+                const profileFallback = document.getElementById('profile-icon-fallback');
+                if (profileImg && profileFallback) {
                     profileImg.src = compressedBase64;
                     profileImg.style.display = 'block';
-                    profileInitials.style.display = 'none';
+                    profileFallback.style.display = 'none';
                 }
                 
-                initProfile(); // Refresh everything else
+                // Refresh data from server to ensure sync
+                setTimeout(() => initProfile(), 1000); 
             } catch (err) {
                 console.error(err);
                 showToast("Upload failed: " + err.message, "error");
