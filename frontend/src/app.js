@@ -275,7 +275,7 @@ window.toggleLensBar = () => {
     }
 };
 
-function applyLens(lensKey) {
+window.applyLens = (lensKey) => {
     currentLens = lensKey;
     const video = document.getElementById('video');
     if (video) {
@@ -341,7 +341,7 @@ async function captureImage() {
     return canvas.toDataURL('image/png');
 }
 
-async function handleCapture() {
+window.handleCapture = async () => {
     const shots = [];
     const countdownEl = document.getElementById('countdown');
     const shutterBtn = document.getElementById('capture-btn');

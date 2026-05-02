@@ -217,14 +217,14 @@
 
     <!-- NEW STANDALONE STUDIO TEMPLATE -->
     <template id="view-camera">
-      <div class="fade-in" style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem;">
+      <div class="fade-in" style="max-width: 800px; margin: 0 auto; display: flex; flex-direction: column; gap: 1.5rem; padding-bottom: 8rem; padding-top: 1rem;">
           <div style="text-align: center;">
             <h1 class="gradient-text" style="font-size: 2.5rem; margin-bottom: 0.5rem; font-family: 'Outfit';">Studio</h1>
             <p class="text-muted">Capture the moment with professional lenses.</p>
           </div>
 
           <div class="glass-card" style="padding: 0; overflow: hidden; position: relative; border-radius: var(--radius-lg); background: black; box-shadow: 0 30px 60px rgba(0,0,0,0.5);">
-            <video id="video" autoplay playsinline style="width: 100%; height: auto; display: block; transform: scaleX(-1);"></video>
+            <video id="video" autoplay playsinline style="width: 100%; height: auto; max-height: 65vh; object-fit: cover; display: block; transform: scaleX(-1);"></video>
             <canvas id="temp-canvas" class="hidden"></canvas>
             
             <div id="countdown" class="hidden flex-center" style="position: absolute; inset: 0; background: rgba(0,0,0,0.3); font-size: 8rem; font-weight: 800; color: white; text-shadow: 0 0 20px rgba(0,0,0,0.5); font-family: 'Outfit'; z-index: 50;">3</div>
