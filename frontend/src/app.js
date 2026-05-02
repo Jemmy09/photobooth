@@ -393,11 +393,25 @@ async function startCamera() {
         applyLens(currentLens);
         renderLensBar();
         updateCaptureIndicator(0);
+        
+        // Lens Bar starts hidden but ready
+        const lb = document.getElementById('lens-bar-container');
+        if (lb) lb.classList.add('hidden');
     } catch (err) {
         showToast("Camera access denied", "error");
         showView('dashboard');
     }
 }
+
+window.toggleLensBar = () => {
+    const lb = document.getElementById('lens-bar-container');
+    if (lb) {
+        lb.classList.toggle('hidden');
+        if (!lb.classList.contains('hidden')) {
+            renderLensBar(); // Refresh on show
+        }
+    }
+};
 
 function applyLens(lensKey) {
     currentLens = lensKey;
@@ -408,8 +422,13 @@ function applyLens(lensKey) {
     
     // Highlight active lens in UI
     document.querySelectorAll('.lens-item').forEach(item => {
-        item.style.borderColor = item.dataset.lens === lensKey ? 'var(--primary)' : 'rgba(255,255,255,0.1)';
-        item.style.transform = item.dataset.lens === lensKey ? 'scale(1.1)' : 'scale(1)';
+        const isActive = item.dataset.lens === lensKey;
+        item.style.borderColor = isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)';
+        item.style.transform = isActive ? 'scale(1.1)' : 'scale(1)';
+        item.style.background = isActive ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255,255,255,0.05)';
+        
+        const label = item.querySelector('span');
+        if (label) label.style.color = isActive ? 'white' : 'var(--text-muted)';
     });
 }
 
@@ -419,10 +438,11 @@ function renderLensBar() {
     
     carousel.innerHTML = Object.keys(LENSES).map(key => {
         const lens = LENSES[key];
+        const isActive = key === currentLens;
         return `
-            <div class="lens-item flex-center" data-lens="${key}" onclick="applyLens('${key}')" style="flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 2px solid ${key === currentLens ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-direction: column; gap: 4px;">
-                <i data-lucide="${lens.icon}" style="width: 20px; height: 20px; color: white;"></i>
-                <span style="font-size: 0.6rem; font-weight: 700; text-transform: uppercase;">${lens.name}</span>
+            <div class="lens-item flex-center" data-lens="${key}" onclick="applyLens('${key}')" style="flex: 0 0 auto; width: 72px; height: 72px; border-radius: 50%; background: ${isActive ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255,255,255,0.05)'}; border: 3px solid ${isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); flex-direction: column; gap: 4px; box-shadow: ${isActive ? '0 0 20px var(--primary-glow)' : 'none'};">
+                <i data-lucide="${lens.icon}" style="width: 22px; height: 22px; color: ${isActive ? 'white' : 'var(--text-muted)'};"></i>
+                <span style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: ${isActive ? 'white' : 'var(--text-muted)'};">${lens.name}</span>
             </div>
         `;
     }).join('');
