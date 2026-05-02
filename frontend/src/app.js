@@ -549,6 +549,11 @@ function finalizePrint(canvas, frameColor) {
         `;
         document.getElementById('share-btn').onclick = () => sharePrint(dataUrl);
         refreshIcons();
+        
+        // Auto-scroll down to perfectly reveal the captured masterpiece
+        setTimeout(() => {
+            resultContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        }, 100);
     }
     
     savePrintToDatabase(dataUrl);
