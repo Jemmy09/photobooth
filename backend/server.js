@@ -485,6 +485,16 @@ app.get('/api/notifications', authenticateUser, async (req, res) => {
   }
 });
 
+app.post('/api/notifications/:id/read', authenticateUser, async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('UPDATE notifications SET read = TRUE WHERE id = $1 AND recipient_uid = $2', [id, req.user.uid]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.post('/api/notifications/read', authenticateUser, async (req, res) => {
   try {
     await pool.query('UPDATE notifications SET read = TRUE WHERE recipient_uid = $1', [req.user.uid]);

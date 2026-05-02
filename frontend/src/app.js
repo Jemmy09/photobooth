@@ -1049,13 +1049,22 @@ async function initNotifications() {
                 ? `<img src="${n.sender_photo}" style="width: 44px; height: 44px; border-radius: 12px; object-fit: cover;">`
                 : `<div style="width: 44px; height: 44px; border-radius: 12px; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; color: var(--text-muted); border: 1px solid var(--glass-border);"><i data-lucide="user" style="width: 20px;"></i></div>`;
 
+            const readActionHtml = !n.read ? `
+                <button onclick="markNotificationRead(${n.id}, this)" class="btn-icon-sm" title="Mark as read" style="background: rgba(255,255,255,0.05); color: var(--primary); border: none; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;">
+                    <i data-lucide="check" style="width: 16px;"></i>
+                </button>
+            ` : '';
+
             return `
-                <div class="glass-card fade-in" style="display: flex; gap: 1rem; padding: 1rem; border-left: 4px solid ${n.read ? 'transparent' : 'var(--primary)'};">
+                <div class="glass-card fade-in" style="display: flex; gap: 1rem; padding: 1rem; border-left: 4px solid ${n.read ? 'transparent' : 'var(--primary)'}; position: relative;">
                     ${avatarHtml}
                     <div style="flex: 1;">
-                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem;">
                             <p style="margin: 0; font-size: 0.95rem; line-height: 1.4;"><strong>${n.sender_name}</strong> ${messageText}</p>
-                            <span class="text-muted" style="font-size: 0.7rem; font-weight: 600;">${timeAgo}</span>
+                            <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
+                                <span class="text-muted" style="font-size: 0.7rem; font-weight: 600;">${timeAgo}</span>
+                                ${readActionHtml}
+                            </div>
                         </div>
                         ${actionHtml}
                     </div>
@@ -1467,6 +1476,27 @@ window.clearAllNotifications = async () => {
         });
         initNotifications();
     } catch (e) {}
+};
+
+window.markNotificationRead = async (id, btn) => {
+    if (!id || id === 0) return; // Ignore local/special notifications for now
+    try {
+        const token = await currentUser.getIdToken();
+        const res = await fetch(`${API_BASE_URL}/api/notifications/${id}/read`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+            if (btn) {
+                const card = btn.closest('.glass-card');
+                if (card) card.style.borderLeftColor = 'transparent';
+                btn.remove();
+            }
+            fetchNotifications(); // Refresh badge
+        }
+    } catch (e) {
+        console.error("Error marking as read:", e);
+    }
 };
 
 // --- Authentication Handlers ---
