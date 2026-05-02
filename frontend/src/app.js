@@ -202,7 +202,8 @@ function showView(view) {
         }
         if (view === 'camera') {
             startCamera();
-            if(window.loadRecentPrints) window.loadRecentPrints();
+            const strips = document.getElementById('captured-strips');
+            if (strips) strips.innerHTML = ''; // Fresh studio space
         }
         if (view === 'friends') initFriends();
         if (view === 'profile') initProfile();
