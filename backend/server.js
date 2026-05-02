@@ -122,7 +122,8 @@ const authenticateUser = async (req, res, next) => {
 
 // 1. Sync Profile (Create or Update)
 app.post('/api/profile/sync', authenticateUser, async (req, res) => {
-  const { uid, email, name, photoURL, lat, lng } = req.body;
+  const { email, name, photoURL, lat, lng } = req.body;
+  const uid = req.user.uid; // Security: Use UID from verified token
   try {
     await pool.query(`
       INSERT INTO profiles (uid, display_name, email, photo_url, location_lat, location_lng, last_seen)
@@ -381,6 +382,15 @@ app.post('/api/booth/respond/:sessionId', authenticateUser, async (req, res) => 
 app.post('/api/booth/session/:id/start', authenticateUser, async (req, res) => {
   const { id } = req.params;
   try {
+    // Security: Verify user is part of the session
+    const sessionRes = await pool.query('SELECT host_uid, guest_uid FROM booth_sessions WHERE id = $1', [id]);
+    if (sessionRes.rows.length === 0) return res.status(404).json({ error: 'Session not found' });
+    
+    const session = sessionRes.rows[0];
+    if (session.host_uid !== req.user.uid && session.guest_uid !== req.user.uid) {
+      return res.status(403).json({ error: 'Unauthorized to start this session' });
+    }
+
     await pool.query("UPDATE booth_sessions SET status = 'capturing' WHERE id = $1", [id]);
     res.json({ success: true });
   } catch (err) {
@@ -398,19 +408,28 @@ app.get('/api/booth/session/:id', authenticateUser, async (req, res) => {
       JOIN profiles pg ON s.guest_uid = pg.uid
       WHERE s.id = $1 AND (s.host_uid = $2 OR s.guest_uid = $2)
     `, [req.params.id, req.user.uid]);
+    
+    if (result.rows.length === 0) return res.status(403).json({ error: 'Unauthorized or session not found' });
     res.json(result.rows[0]);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// 9. Upload Photo to Session
+// 10. Upload Photo to Session
 app.post('/api/booth/session/:id/photo', authenticateUser, async (req, res) => {
   const { id } = req.params;
   const { photoData } = req.body;
   try {
-    const sessionRes = await pool.query('SELECT shared_photos FROM booth_sessions WHERE id = $1', [id]);
-    const sharedPhotos = sessionRes.rows[0].shared_photos || [];
+    const sessionRes = await pool.query('SELECT host_uid, guest_uid, shared_photos FROM booth_sessions WHERE id = $1', [id]);
+    if (sessionRes.rows.length === 0) return res.status(404).json({ error: 'Session not found' });
+
+    const session = sessionRes.rows[0];
+    if (session.host_uid !== req.user.uid && session.guest_uid !== req.user.uid) {
+      return res.status(403).json({ error: 'Unauthorized to upload to this session' });
+    }
+
+    const sharedPhotos = session.shared_photos || [];
     sharedPhotos.push({ uid: req.user.uid, photo: photoData, timestamp: new Date() });
     
     await pool.query('UPDATE booth_sessions SET shared_photos = $1 WHERE id = $2', [JSON.stringify(sharedPhotos), id]);

@@ -1,31 +1,41 @@
-# PhotoBooth Web App
+# PhotoBooth Full-Stack Monorepo
 
 A premium, social photobooth experience built with Vite, Firebase, and Node.js.
 
-## 🚀 Features
-- **Smart Camera**: Capture 4 poses with a countdown.
-- **Classic Prints**: Automatically generates "Strips" (vertical) or "Postcards" (grid).
-- **Social Connect**: Search and follow friends.
-- **Shared Booth**: Invite friends to a synchronous session and create combined prints featuring both users.
-- **Premium UI**: Modern dark mode with glassmorphism and smooth animations.
+## 📁 Repository Structure
+- **`/frontend`**: React/Vite frontend application (deployed to GitHub Pages).
+- **`/backend`**: Node.js/Express API with PostgreSQL (deployed to Render/Railway).
+- **`sync.js`**: Unified tool for committing and pushing changes.
 
-## 🛠️ Setup
+## 🚀 One-Command Setup
 
-### Backend
-1. Go to `backend` directory.
-2. Install dependencies: `npm install`.
-3. Rename `.env.example` to `.env` and fill in your credentials:
-   - `DATABASE_URL`: PostgreSQL connection string (Aiven recommended).
-   - `FIREBASE_SERVICE_ACCOUNT`: Base64 encoded Firebase service account JSON.
-4. Run: `node server.js`.
+The project now uses **npm workspaces**. You only need to run setup in the root directory:
 
-### Frontend
-1. Install dependencies: `npm install`.
-2. Run: `npm run dev`.
-3. Copy `.env.example` to `.env` and update the values.
+1. **Install everything**: 
+   ```bash
+   npm install
+   ```
+2. **Setup Environment**:
+   - Copy `frontend/.env.example` to `frontend/.env`.
+   - Copy `backend/.env.example` to `backend/.env`.
+3. **Run Development Mode**:
+   ```bash
+   npm run dev
+   ```
+   *This starts both the frontend and the backend simultaneously!*
+
+## 🛠️ Unified Commands (from root)
+| Command | Description |
+| :--- | :--- |
+| `npm run dev` | Start both Frontend and Backend concurrently |
+| `npm run build` | Build the frontend for production |
+| `npm run commit` | Professional sync tool (Stages, Commits, and Pushes) |
+| `npm run dev:frontend` | Start ONLY the frontend |
+| `npm run dev:backend` | Start ONLY the backend |
 
 ## 📸 Usage
 1. Login with Google.
 2. Go to **Friends** to follow other users.
 3. Once they follow back, click **Invite** to start a shared session.
 4. Or just click **Open Camera** to take a solo strip!
+

@@ -90,9 +90,7 @@ function setupEventListeners() {
             window.handleLogout();
         }
 
-        if (e.target.closest('#google-login')) {
-            window.handleGoogleLogin();
-        }
+
     });
 
     document.addEventListener('submit', async (e) => {
@@ -143,6 +141,26 @@ function setupEventListeners() {
         }
     });
 }
+
+window.toggleAuthMode = (mode) => {
+    const loginSection = document.getElementById('login-section');
+    const registerSection = document.getElementById('register-section');
+    const tabLogin = document.getElementById('tab-login');
+    const tabRegister = document.getElementById('tab-register');
+
+    if (mode === 'login') {
+        loginSection.classList.remove('hidden');
+        registerSection.classList.add('hidden');
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+    } else {
+        loginSection.classList.add('hidden');
+        registerSection.classList.remove('hidden');
+        tabLogin.classList.remove('active');
+        tabRegister.classList.add('active');
+    }
+    refreshIcons();
+};
 
 function refreshIcons() {
     if (window.lucide) {
@@ -1146,7 +1164,6 @@ async function initProfile() {
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const data = await res.json();
-        console.log("DEBUG: Profile data from server:", data);
 
         if (data) {
             nameEl.innerText = data.display_name || currentUser.displayName || 'Anonymous';
@@ -1421,9 +1438,12 @@ window.clearAllNotifications = async () => {
 
 // --- Authentication Handlers ---
 window.handleGoogleLogin = async () => {
+    console.log("🟡 Google Login triggered");
     try {
         await auth.signInWithPopup(provider);
+        console.log("✅ Google Login success");
     } catch (err) {
+        console.error("❌ Google Login error:", err);
         showToast(err.message, "error");
     }
 };
