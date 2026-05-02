@@ -198,8 +198,12 @@ function showView(view) {
         if (view === 'dashboard') {
             updateUserUI();
             fetchFriends(true); // Active friends only for dashboard
+            if(window.loadRecentPrints) window.loadRecentPrints();
         }
-        if (view === 'camera') startCamera();
+        if (view === 'camera') {
+            startCamera();
+            if(window.loadRecentPrints) window.loadRecentPrints();
+        }
         if (view === 'friends') initFriends();
         if (view === 'profile') initProfile();
         if (view === 'notifications') initNotifications();
@@ -378,11 +382,14 @@ window.handleCapture = async () => {
     const mode = document.getElementById('booth-mode').value;
     const frameColor = document.getElementById('frame-color').value;
     
-    if (mode === 'strip') {
-        processStrip(shots, frameColor);
-    } else {
-        processPostcard(shots, frameColor);
-    }
+    // Convert named colors to hex for canvas
+    const colorMap = {
+        white: '#ffffff',
+        black: '#0f172a',
+        pink: '#fce7f3'
+    };
+    
+    generatePrint(shots, mode, colorMap[frameColor] || '#ffffff');
 }
 
 async function startCaptureSequence() {
@@ -479,52 +486,38 @@ function capturePhoto() {
     return canvas.toDataURL('image/jpeg', 0.8);
 }
 
-function processFinalPrint(isShared = false) {
+function generatePrint(shots, mode, frameColor) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
-    const modeStrip = document.getElementById('mode-strip');
-    const isStrip = modeStrip ? modeStrip.classList.contains('active') : true;
     
     showToast("Generating your masterpiece... ✨", "info");
 
-    if (isStrip) {
+    if (mode === 'strip') {
         // Vertical Strip
-        canvas.width = isShared ? 800 : 400;
+        canvas.width = 400;
         canvas.height = 1200;
-        ctx.fillStyle = 'white';
+        ctx.fillStyle = frameColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         let loaded = 0;
-        const total = photos.length;
-
-        photos.forEach((p, i) => {
+        shots.forEach((p, i) => {
             const img = new Image();
             img.src = p;
             img.onload = () => {
-                if (isShared) {
-                    // 2 columns, 4 rows
-                    const col = i % 2;
-                    const row = Math.floor(i / 2);
-                    ctx.drawImage(img, 20 + (col * 380), 20 + (row * 290), 360, 270);
-                } else {
-                    // 1 column, 4 rows
-                    ctx.drawImage(img, 20, 20 + (i * 290), 360, 270);
-                }
+                ctx.drawImage(img, 20, 20 + (i * 290), 360, 270);
                 loaded++;
-                if (loaded === total) finalizePrint(canvas);
+                if (loaded === 4) finalizePrint(canvas, frameColor);
             };
         });
     } else {
         // Postcard (800x600)
         canvas.width = 800;
-        canvas.height = isShared ? 1200 : 600;
-        ctx.fillStyle = 'white';
+        canvas.height = 600;
+        ctx.fillStyle = frameColor;
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         
         let loaded = 0;
-        const total = photos.length;
-
-        photos.forEach((p, i) => {
+        shots.forEach((p, i) => {
             const img = new Image();
             img.src = p;
             img.onload = () => {
@@ -533,36 +526,80 @@ function processFinalPrint(isShared = false) {
                 const y = Math.floor(i / cols) * 290 + 10;
                 ctx.drawImage(img, x, y, 380, 280);
                 loaded++;
-                if (loaded === total) finalizePrint(canvas);
+                if (loaded === 4) finalizePrint(canvas, frameColor);
             };
         });
     }
 }
 
-function finalizePrint(canvas) {
+function finalizePrint(canvas, frameColor) {
     const dataUrl = canvas.toDataURL('image/png');
     
-    // Save to Recent Prints Gallery (Limit 3)
+    // Save to Recent Prints Gallery (Limit 5)
     let recentPrints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
-    recentPrints.unshift(dataUrl); // Add to front
-    recentPrints = recentPrints.slice(0, 3); // Keep only 3
+    recentPrints.unshift(dataUrl); 
+    recentPrints = recentPrints.slice(0, 5); 
     localStorage.setItem('recent_prints', JSON.stringify(recentPrints));
     
     const resultContainer = document.getElementById('captured-strips');
-    resultContainer.innerHTML = `
-        <div class="fade-in" style="text-align: center;">
-            <h2 class="mb-1">Your Print is Ready!</h2>
-            <img src="${dataUrl}" style="max-width: 100%; border: 10px solid white; box-shadow: var(--shadow-lg);">
-            <div class="flex-center mt-1" style="gap: 1rem;">
-                <a href="${dataUrl}" download="photobooth-print.png" class="btn btn-primary">Download</a>
-                <button id="share-btn" class="btn btn-secondary">Share</button>
+    if (resultContainer) {
+        resultContainer.innerHTML = `
+            <div class="fade-in glass-card" style="text-align: center; width: 100%; border: 1px solid var(--glass-border); padding: 1.5rem;">
+                <h3 class="mb-1 text-primary">Masterpiece Ready!</h3>
+                <img src="${dataUrl}" style="max-width: 100%; max-height: 400px; border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                <div class="flex-center mt-1" style="gap: 1rem;">
+                    <button onclick="window.downloadPrint('${dataUrl}')" class="btn btn-primary" style="flex: 1;"><i data-lucide="download" style="width: 18px;"></i> Save</button>
+                    <button id="share-btn" class="btn btn-secondary" style="flex: 1;"><i data-lucide="share-2" style="width: 18px;"></i> Share</button>
+                </div>
             </div>
+        `;
+        document.getElementById('share-btn').onclick = () => sharePrint(dataUrl);
+        refreshIcons();
+    }
+    
+    if (window.loadRecentPrints) window.loadRecentPrints();
+    showToast("Print successfully generated! ✨", "success");
+}
+
+window.downloadPrint = async (url) => {
+    try {
+        const res = await fetch(url);
+        const blob = await res.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = objectUrl;
+        a.download = 'photobooth-print.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(objectUrl);
+        showToast("Image saved to your device!", "success");
+    } catch(e) {
+        showToast("Failed to save image.", "error");
+    }
+};
+
+window.loadRecentPrints = () => {
+    const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
+    const container = document.getElementById('recent-photos');
+    if (!container) return;
+    
+    if (prints.length === 0) {
+        container.innerHTML = '<p class="text-muted" style="font-size: 0.85rem;">No recent captures</p>';
+        return;
+    }
+    
+    const latest = prints[0];
+    container.style.position = 'relative';
+    container.style.padding = '0';
+    container.innerHTML = `
+        <img src="${latest}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="window.downloadPrint('${latest}')">
+        <div style="position: absolute; bottom: 8px; right: 8px;">
+            <button onclick="window.downloadPrint('${latest}')" class="btn-icon" style="background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2);"><i data-lucide="download" style="width: 16px; height: 16px;"></i></button>
         </div>
     `;
-    
-    document.getElementById('share-btn').onclick = () => sharePrint(dataUrl);
-    showToast("Print generated! ✨", "success");
-}
+    refreshIcons();
+};
 
 async function sharePrint(dataUrl) {
     try {
