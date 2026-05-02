@@ -39,7 +39,7 @@ function init() {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            console.log("🚀 PhotoBooth v1.2.1 - Active");
+            console.log("🚀 PhotoBooth System — Authenticated & Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             
@@ -1521,4 +1521,6 @@ window.handleLogout = async () => {
 };
 
 // DUPLICATES REMOVED - EOF
+// Initialized
+console.log("✨ PhotoBooth System — Fully Operational");
 init();
