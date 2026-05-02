@@ -522,7 +522,12 @@ function processFinalPrint(isShared = false) {
 
 function finalizePrint(canvas) {
     const dataUrl = canvas.toDataURL('image/png');
-    localStorage.setItem('recent_print', dataUrl);
+    
+    // Save to Recent Prints Gallery (Limit 3)
+    let recentPrints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
+    recentPrints.unshift(dataUrl); // Add to front
+    recentPrints = recentPrints.slice(0, 3); // Keep only 3
+    localStorage.setItem('recent_prints', JSON.stringify(recentPrints));
     
     const resultContainer = document.getElementById('captured-strips');
     resultContainer.innerHTML = `
@@ -1111,29 +1116,47 @@ function updateUserUI() {
     }
     
     const recentPhotos = document.getElementById('recent-photos');
-    const lastPrint = localStorage.getItem('recent_print');
-    if (recentPhotos && lastPrint) {
-        recentPhotos.innerHTML = `<img src="${lastPrint}" style="height: 100%; border-radius: 8px; cursor: pointer;" onclick="showLastPrint()">`;
+    const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
+    
+    if (recentPhotos) {
+        if (prints.length > 0) {
+            recentPhotos.style.display = 'flex';
+            recentPhotos.style.gap = '0.75rem';
+            recentPhotos.style.overflowX = 'auto';
+            recentPhotos.style.paddingBottom = '0.5rem';
+            
+            recentPhotos.innerHTML = prints.map((p, i) => `
+                <div class="fade-in" style="flex: 0 0 auto; width: 100px; height: 130px; border-radius: 12px; overflow: hidden; border: 2px solid rgba(255,255,255,0.1); cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow-sm);" onclick="showPrint(${i})">
+                    <img src="${p}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+            `).join('');
+        } else {
+            recentPhotos.innerHTML = `<p class="text-muted" style="font-size: 0.85rem;">Your gallery is empty. Head to the Studio!</p>`;
+        }
     }
 }
 
-window.showLastPrint = () => {
-    const lastPrint = localStorage.getItem('recent_print');
-    if (lastPrint) {
-        // Create a temporary modal to show the print
+window.showPrint = (index) => {
+    const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
+    const printUrl = prints[index];
+    if (printUrl) {
         const modal = document.createElement('div');
         modal.style.position = 'fixed';
         modal.style.inset = '0';
-        modal.style.background = 'rgba(0,0,0,0.9)';
+        modal.style.background = 'rgba(15, 23, 42, 0.95)';
+        modal.style.backdropFilter = 'blur(10px)';
         modal.style.zIndex = '3000';
         modal.style.display = 'flex';
         modal.style.alignItems = 'center';
         modal.style.justifyContent = 'center';
         modal.style.padding = '2rem';
         modal.innerHTML = `
-            <div style="position: relative; max-width: 100%; max-height: 100%;">
-                <img src="${lastPrint}" style="max-width: 100%; max-height: 90vh; border: 10px solid white; box-shadow: 0 0 50px rgba(0,0,0,0.5);">
-                <button onclick="this.parentElement.parentElement.remove()" class="btn btn-secondary" style="position: absolute; top: -2rem; right: -2rem; border-radius: 50%; width: 40px; height: 40px; padding: 0;"><i data-lucide="x"></i></button>
+            <div class="fade-in" style="position: relative; max-width: 100%; max-height: 100%; display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
+                <img src="${printUrl}" style="max-width: 100%; max-height: 80vh; border: 12px solid white; border-radius: 4px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
+                <div style="display: flex; gap: 1rem;">
+                    <a href="${printUrl}" download="photobooth-capture.png" class="btn btn-primary" style="padding: 0.75rem 2rem; border-radius: 30px;">Download</a>
+                    <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-secondary" style="padding: 0.75rem 2rem; border-radius: 30px;">Close</button>
+                </div>
             </div>
         `;
         document.body.appendChild(modal);
