@@ -1,3 +1,7 @@
+/** 
+ * PhotoBooth Engine v1.3.6
+ * Professional Filter System & Pro Controls
+ */
 import './style.css';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
