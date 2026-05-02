@@ -535,12 +535,6 @@ function generatePrint(shots, mode, frameColor) {
 function finalizePrint(canvas, frameColor) {
     const dataUrl = canvas.toDataURL('image/png');
     
-    // Save to Recent Prints Gallery (Limit 5)
-    let recentPrints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
-    recentPrints.unshift(dataUrl); 
-    recentPrints = recentPrints.slice(0, 5); 
-    localStorage.setItem('recent_prints', JSON.stringify(recentPrints));
-    
     const resultContainer = document.getElementById('captured-strips');
     if (resultContainer) {
         resultContainer.innerHTML = `
@@ -557,8 +551,23 @@ function finalizePrint(canvas, frameColor) {
         refreshIcons();
     }
     
-    if (window.loadRecentPrints) window.loadRecentPrints();
+    savePrintToDatabase(dataUrl);
     showToast("Print successfully generated! ✨", "success");
+}
+
+async function savePrintToDatabase(dataUrl) {
+    if (!currentUser) return;
+    try {
+        const token = await currentUser.getIdToken();
+        await fetch(`${API_BASE_URL}/api/prints/save`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ imageData: dataUrl })
+        });
+        if (window.loadRecentPrints) window.loadRecentPrints();
+    } catch(e) {
+        console.error("Failed to save to DB", e);
+    }
 }
 
 window.downloadPrint = async (url) => {
@@ -579,26 +588,43 @@ window.downloadPrint = async (url) => {
     }
 };
 
-window.loadRecentPrints = () => {
-    const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
+window.loadRecentPrints = async () => {
+    if (!currentUser) return;
     const container = document.getElementById('recent-photos');
     if (!container) return;
     
-    if (prints.length === 0) {
-        container.innerHTML = '<p class="text-muted" style="font-size: 0.85rem;">No recent captures</p>';
-        return;
+    try {
+        const token = await currentUser.getIdToken();
+        const res = await fetch(`${API_BASE_URL}/api/prints/recent`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const prints = await res.json();
+        
+        if (!prints || prints.length === 0) {
+            container.innerHTML = '<p class="text-muted" style="font-size: 0.85rem;">Your gallery is empty. Head to the Studio!</p>';
+            return;
+        }
+        
+        container.style.border = 'none';
+        container.style.background = 'transparent';
+        container.style.padding = '0';
+        container.innerHTML = `
+            <div style="display: flex; gap: 1rem; overflow-x: auto; width: 100%; height: 100%; padding: 0.5rem 0;" class="no-scrollbar">
+                ${prints.map((p, index) => `
+                    <div style="position: relative; flex: 0 0 auto; height: 230px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);">
+                        <img src="${p}" style="height: 100%; object-fit: contain; cursor: pointer;" onclick="window.downloadPrint('${p}')">
+                        <div style="position: absolute; bottom: 8px; right: 8px;">
+                            <button onclick="window.downloadPrint('${p}')" class="btn-icon" style="background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); width: 36px; height: 36px;"><i data-lucide="download" style="width: 16px; height: 16px;"></i></button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+        refreshIcons();
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = '<p class="text-muted" style="font-size: 0.85rem;">Failed to load gallery.</p>';
     }
-    
-    const latest = prints[0];
-    container.style.position = 'relative';
-    container.style.padding = '0';
-    container.innerHTML = `
-        <img src="${latest}" style="width: 100%; height: 100%; object-fit: cover; cursor: pointer;" onclick="window.downloadPrint('${latest}')">
-        <div style="position: absolute; bottom: 8px; right: 8px;">
-            <button onclick="window.downloadPrint('${latest}')" class="btn-icon" style="background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2);"><i data-lucide="download" style="width: 16px; height: 16px;"></i></button>
-        </div>
-    `;
-    refreshIcons();
 };
 
 async function sharePrint(dataUrl) {
