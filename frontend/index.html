@@ -45,6 +45,10 @@
                     <i data-lucide="layout-grid"></i>
                     <span class="nav-links-text">Dashboard</span>
                 </a>
+                <a href="#" data-link="camera" class="nav-item">
+                    <i data-lucide="camera"></i>
+                    <span class="nav-links-text">Studio</span>
+                </a>
                 <a href="#" data-link="friends" class="nav-item">
                     <i data-lucide="users"></i>
                     <span class="nav-links-text">Friends</span>
@@ -178,11 +182,18 @@
                 <p class="text-muted">Ready to capture some memories today?</p>
             </div>
             <div style="text-align: right;">
-                <span style="font-size: 0.7rem; color: #10b981; font-weight: 700; background: rgba(16, 185, 129, 0.1); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2);">v1.2.2 STABLE</span>
+                <span style="font-size: 0.7rem; color: #10b981; font-weight: 800; background: rgba(16, 185, 129, 0.1); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(16, 185, 129, 0.2);">v1.4.0 STABLE</span>
             </div>
         </div>
 
         <div class="user-grid" style="grid-template-columns: 1.5fr 1fr; margin-bottom: 2rem;">
+          <div class="glass-card fade-in" style="display: flex; flex-direction: column; justify-content: center; min-height: 280px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1)); border: 1px solid rgba(255, 255, 255, 0.15);">
+            <h2 style="font-size: 2rem; margin-bottom: 1rem; font-family: 'Outfit';">Ready to Shoot?</h2>
+            <p class="text-muted" style="margin-bottom: 2rem; max-width: 400px; font-size: 1.05rem;">Step into the Studio to capture high-fidelity photostrips with our new professional filters.</p>
+            <button onclick="showView('camera')" class="btn btn-primary" style="align-self: flex-start; padding: 1.1rem 2.2rem; border-radius: 16px; font-weight: 700; box-shadow: 0 10px 25px var(--primary-glow);">
+                <i data-lucide="camera" style="width: 22px; height: 22px;"></i> Enter Studio
+            </button>
+          </div>
           <!-- Camera Section -->
           <div id="camera-section" class="hidden">
             <div class="glass-card" style="padding: 0; overflow: hidden; position: relative; border-radius: var(--radius-lg); background: black;">
