@@ -918,11 +918,16 @@ function renderFriendsList(friends) {
 function renderMiniFriendsList(friends) {
     const container = document.getElementById('friends-mini-list');
     if (!container) return;
-    if (!friends || friends.length === 0) {
+    
+    // Strictly filter offline friends
+    const activeFriends = friends ? friends.filter(f => f.last_seen && (new Date() - new Date(f.last_seen)) < 300000) : [];
+    
+    if (activeFriends.length === 0) {
         container.innerHTML = `<p class="text-muted">No friends are online right now.</p>`;
         return;
     }
-    container.innerHTML = friends.map(f => {
+    
+    container.innerHTML = activeFriends.map(f => {
         const hasImg = (f.photo_url && f.photo_url.length > 20);
         const avatarBg = `hsl(${Math.abs(f.uid.charCodeAt(0) * 37) % 360}, 30%, 20%)`;
         

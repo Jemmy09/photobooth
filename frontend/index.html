@@ -186,31 +186,26 @@
             </div>
         </div>
 
-        <div class="user-grid" style="grid-template-columns: 1.5fr 1fr; margin-bottom: 2rem;">
-          <div class="glass-card fade-in" style="display: flex; flex-direction: column; justify-content: center; min-height: 280px; background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1)); border: 1px solid rgba(255, 255, 255, 0.15);">
-            <h2 style="font-size: 2rem; margin-bottom: 1rem; font-family: 'Outfit';">Ready to Shoot?</h2>
-            <p class="text-muted" style="margin-bottom: 2rem; max-width: 400px; font-size: 1.05rem;">Step into the Studio to capture high-fidelity photostrips with our new professional filters.</p>
-            <button onclick="showView('camera')" class="btn btn-primary" style="align-self: flex-start; padding: 1.1rem 2.2rem; border-radius: 16px; font-weight: 700; box-shadow: 0 10px 25px var(--primary-glow);">
-                <i data-lucide="camera" style="width: 22px; height: 22px;"></i> Enter Studio
-            </button>
-          </div>
-
-          <div class="glass-card" style="display: flex; flex-direction: column;">
-            <h3 style="margin-bottom: 1.5rem;">Recent Print</h3>
-            <div id="recent-photos" style="flex: 1; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--glass-border); border-radius: 16px; overflow: hidden;">
-              <p class="text-muted" style="font-size: 0.85rem;">Your gallery is empty. Head to the Studio!</p>
+        <div style="display: flex; flex-direction: column; gap: 2rem; margin-bottom: 4rem;">
+            <div class="glass-card" style="display: flex; flex-direction: column;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 style="margin: 0; font-family: 'Outfit';">Recent Masterpiece</h2>
+                    <span style="font-size: 0.75rem; font-weight: 800; color: var(--primary); background: rgba(99, 102, 241, 0.1); padding: 4px 10px; border-radius: 12px;">GALLERY</span>
+                </div>
+                <div id="recent-photos" style="min-height: 250px; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--glass-border); border-radius: 16px; overflow: hidden; background: rgba(0,0,0,0.2);">
+                    <p class="text-muted" style="font-size: 0.85rem;">Your gallery is empty. Head to the Studio!</p>
+                </div>
             </div>
-          </div>
-        </div>
 
-        <div class="glass-card" style="margin-bottom: 4rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h3 style="margin: 0;">Active Friends</h3>
-            <button data-link="friends" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 12px;">View All</button>
-          </div>
-          <div id="active-friends-mini" style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem;" class="no-scrollbar">
-            <!-- Active friends will load here -->
-          </div>
+            <div class="glass-card">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h3 style="margin: 0; font-family: 'Outfit';">Active Friends</h3>
+                    <button data-link="friends" class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.85rem; border-radius: 12px;">View All</button>
+                </div>
+                <div id="friends-mini-list" style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem;" class="no-scrollbar">
+                    <p class="text-muted">No friends are online right now.</p>
+                </div>
+            </div>
         </div>
       </div>
     </template>
