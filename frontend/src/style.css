@@ -399,6 +399,24 @@ input[type="text"], input[type="email"], input[type="password"] {
   box-shadow: 0 10px 30px rgba(0,0,0,0.5);
 }
 
+/* --- Studio & Lens Bar --- */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+.lens-item:hover {
+    background: rgba(255, 255, 255, 0.1) !important;
+}
+
+.lens-item:active {
+    transform: scale(0.9) !important;
+}
+
+#shutter-progress {
+    stroke-dashoffset: 201;
+    transform-origin: center;
+    transition: stroke-dashoffset 0.1s linear, stroke 0.3s ease;
+}
+
 /* --- Animations --- */
 .fade-in { animation: fadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }

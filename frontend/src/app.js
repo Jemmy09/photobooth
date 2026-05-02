@@ -23,7 +23,19 @@ const provider = new firebase.auth.GoogleAuthProvider();
 
 // App State
 let currentUser = null;
-let currentView = 'login';
+let currentView = 'dashboard';
+let isCameraActive = false;
+let currentLens = 'none';
+
+const LENSES = {
+    none: { name: 'Normal', filter: 'none', icon: 'circle' },
+    vivid: { name: 'Vivid', filter: 'brightness(1.1) contrast(1.1) saturate(1.3)', icon: 'zap' },
+    noir: { name: 'Noir', filter: 'grayscale(1) contrast(1.4) brightness(0.9)', icon: 'moon' },
+    vintage: { name: 'Vintage', filter: 'sepia(0.5) contrast(1.1) brightness(1.05)', icon: 'film' },
+    dreamy: { name: 'Dreamy', filter: 'blur(0.5px) brightness(1.1) saturate(0.8) contrast(0.9)', icon: 'cloud' },
+    cool: { name: 'Cool', filter: 'hue-rotate(180deg) saturate(0.8) brightness(1.1)', icon: 'snowflake' },
+    warm: { name: 'Warm', filter: 'sepia(0.3) saturate(1.5) brightness(1.1)', icon: 'sun' }
+};
 let mediaStream = null;
 let photos = [];
 let userLocation = null;
@@ -363,6 +375,131 @@ async function initBooth() {
             btnStrip.style.background = 'transparent';
             btnStrip.style.color = 'var(--text-muted)';
         };
+    }
+}
+
+async function startCamera() {
+    const video = document.getElementById('video');
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({ 
+            video: { 
+                facingMode: 'user',
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            } 
+        });
+        video.srcObject = stream;
+        isCameraActive = true;
+        applyLens(currentLens);
+        renderLensBar();
+        updateCaptureIndicator(0);
+    } catch (err) {
+        showToast("Camera access denied", "error");
+        showView('dashboard');
+    }
+}
+
+function applyLens(lensKey) {
+    currentLens = lensKey;
+    const video = document.getElementById('video');
+    if (video) {
+        video.style.filter = LENSES[lensKey].filter;
+    }
+    
+    // Highlight active lens in UI
+    document.querySelectorAll('.lens-item').forEach(item => {
+        item.style.borderColor = item.dataset.lens === lensKey ? 'var(--primary)' : 'rgba(255,255,255,0.1)';
+        item.style.transform = item.dataset.lens === lensKey ? 'scale(1.1)' : 'scale(1)';
+    });
+}
+
+function renderLensBar() {
+    const carousel = document.getElementById('filter-carousel');
+    if (!carousel) return;
+    
+    carousel.innerHTML = Object.keys(LENSES).map(key => {
+        const lens = LENSES[key];
+        return `
+            <div class="lens-item flex-center" data-lens="${key}" onclick="applyLens('${key}')" style="flex: 0 0 auto; width: 64px; height: 64px; border-radius: 50%; background: rgba(255,255,255,0.05); border: 2px solid ${key === currentLens ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); flex-direction: column; gap: 4px;">
+                <i data-lucide="${lens.icon}" style="width: 20px; height: 20px; color: white;"></i>
+                <span style="font-size: 0.6rem; font-weight: 700; text-transform: uppercase;">${lens.name}</span>
+            </div>
+        `;
+    }).join('');
+    refreshIcons();
+}
+
+function updateCaptureIndicator(count) {
+    const indicator = document.getElementById('capture-count-indicator');
+    const progressCircle = document.getElementById('shutter-progress');
+    if (indicator) indicator.innerText = `${count} / 4 Shots`;
+    
+    if (progressCircle) {
+        const offset = 201 - (count / 4) * 201;
+        progressCircle.style.strokeDashoffset = offset;
+    }
+}
+
+async function captureImage() {
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('temp-canvas');
+    const ctx = canvas.getContext('2d');
+    
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Apply Lens to Canvas
+    ctx.filter = LENSES[currentLens].filter;
+    
+    // Flip horizontal for natural look
+    ctx.translate(canvas.width, 0);
+    ctx.scale(-1, 1);
+    
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    return canvas.toDataURL('image/png');
+}
+
+async function handleCapture() {
+    const shots = [];
+    const countdownEl = document.getElementById('countdown');
+    const shutterBtn = document.getElementById('capture-btn');
+    
+    shutterBtn.disabled = true;
+    shutterBtn.style.transform = 'scale(0.8)';
+    
+    for (let i = 0; i < 4; i++) {
+        // Countdown
+        countdownEl.classList.remove('hidden');
+        for (let j = 3; j > 0; j--) {
+            countdownEl.innerText = j;
+            await new Promise(r => setTimeout(r, 800));
+        }
+        countdownEl.classList.add('hidden');
+        
+        // Capture
+        const shot = await captureImage();
+        shots.push(shot);
+        updateCaptureIndicator(i + 1);
+        
+        // Flash effect
+        const video = document.getElementById('video');
+        video.style.opacity = '0';
+        setTimeout(() => video.style.opacity = '1', 100);
+        
+        if (i < 3) await new Promise(r => setTimeout(r, 1000));
+    }
+    
+    shutterBtn.disabled = false;
+    shutterBtn.style.transform = 'scale(1)';
+    updateCaptureIndicator(0); // Reset
+    
+    const mode = document.getElementById('booth-mode').value;
+    const frameColor = document.getElementById('frame-color').value;
+    
+    if (mode === 'strip') {
+        processStrip(shots, frameColor);
+    } else {
+        processPostcard(shots, frameColor);
     }
 }
 
