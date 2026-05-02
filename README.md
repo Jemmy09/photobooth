@@ -62,8 +62,9 @@ npm run build
 ---
 
 ## 📜 Version History
+*   **v1.4.0**: **STABLE RELEASE** — Professional Filter Engine, Lens Bar, and Smart Notifications.
 *   **v1.3.5**: Individual notification controls and dashboard gallery optimization.
-*   **v1.3.0**: The "Premium Update"—Glassmorphism UI and real-time status.
+*   **v1.3.0**: The "Premium Update" — Glassmorphism UI and real-time status.
 *   **v1.2.0**: Migrated to a stable Monorepo structure.
 *   **v1.0.0**: Initial launch of the core camera and social features.
 

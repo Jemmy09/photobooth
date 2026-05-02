@@ -1,5 +1,5 @@
 /** 
- * PhotoBooth Engine v1.3.6
+ * PhotoBooth Engine v1.4.0 STABLE
  * Professional Filter System & Pro Controls
  */
 import './style.css';
@@ -55,7 +55,7 @@ function init() {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            console.log("🚀 PhotoBooth System — Authenticated & Active");
+            console.log("🚀 PhotoBooth System — v1.4.0 STABLE — Authenticated & Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             
