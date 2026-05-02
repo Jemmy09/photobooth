@@ -199,7 +199,7 @@ function showView(view) {
             updateUserUI();
             fetchFriends(true); // Active friends only for dashboard
         }
-        if (view === 'booth') initBooth();
+        if (view === 'camera') startCamera();
         if (view === 'friends') initFriends();
         if (view === 'profile') initProfile();
         if (view === 'notifications') initNotifications();
@@ -207,72 +207,12 @@ function showView(view) {
         window.scrollTo(0, 0);
         refreshIcons();
     } else {
-        // Fallback for dynamic views
         renderDynamicView(view);
     }
 }
 
 function renderDynamicView(view) {
-    if (view === 'booth') {
-        contentElement.innerHTML = `
-            <div class="fade-in mt-2 flex-center" style="flex-direction: column;">
-                <header class="flex-center mb-1" style="justify-content: space-between; width: 100%; max-width: 800px;">
-                   <div>
-                      <h1 style="font-family: 'Outfit', sans-serif;">Studio</h1>
-                      <p class="text-muted" style="font-size: 0.9rem;">Strike a pose</p>
-                   </div>
-                   <button data-link="dashboard" class="btn btn-secondary" style="border-radius: 50%; padding: 0.5rem;"><i data-lucide="x"></i></button>
-                </header>
-
-                <div class="glass-card" style="padding: 1rem; width: 100%; max-width: 800px; display: flex; flex-direction: column; gap: 1.5rem; border-radius: 30px;">
-                    
-                    <div class="camera-preview" style="position: relative; border-radius: 20px; overflow: hidden; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.1);">
-                        <video id="camera-feed" autoplay playsinline style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
-                        <div id="countdown" class="flex-center" style="position: absolute; inset: 0; font-family: 'Outfit', sans-serif; font-size: 10rem; font-weight: 800; color: white; display: none; text-shadow: 0 10px 30px rgba(0,0,0,0.5); backdrop-filter: blur(5px);">3</div>
-                        <canvas id="photo-canvas" style="display: none;"></canvas>
-                        
-                        <!-- Grid Overlay -->
-                        <div style="position: absolute; inset: 0; pointer-events: none; display: grid; grid-template-columns: 1fr 1fr 1fr; grid-template-rows: 1fr 1fr 1fr;">
-                           <div style="border-right: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
-                           <div style="border-right: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
-                           <div style="border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
-                           <div style="border-right: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
-                           <div style="border-right: 1px solid rgba(255,255,255,0.1); border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
-                           <div style="border-bottom: 1px solid rgba(255,255,255,0.1);"></div>
-                           <div style="border-right: 1px solid rgba(255,255,255,0.1);"></div>
-                           <div style="border-right: 1px solid rgba(255,255,255,0.1);"></div>
-                           <div></div>
-                        </div>
-                    </div>
-
-                    <div id="captured-strips" class="flex-center" style="gap: 0.5rem; flex-wrap: wrap;"></div>
-
-                    <!-- Controls Section -->
-                    <div class="flex-center" style="flex-direction: column; gap: 1.5rem; width: 100%;">
-                        
-                        <!-- Mode Selector (Pill Shape) -->
-                        <div style="display: flex; background: rgba(0,0,0,0.4); padding: 0.25rem; border-radius: 40px; border: 1px solid var(--border);">
-                            <button id="mode-strip" class="btn active" style="border: none; background: var(--primary); color: white; border-radius: 30px; padding: 0.5rem 1.5rem; font-size: 0.85rem; box-shadow: var(--shadow-sm); transition: all 0.3s;">
-                                <i data-lucide="film" style="width: 16px; height: 16px;"></i> Strip
-                            </button>
-                            <button id="mode-postcard" class="btn" style="border: none; background: transparent; color: var(--text-muted); border-radius: 30px; padding: 0.5rem 1.5rem; font-size: 0.85rem; transition: all 0.3s;">
-                                <i data-lucide="layout-grid" style="width: 16px; height: 16px;"></i> Postcard
-                            </button>
-                        </div>
-
-                        <!-- Shutter Button -->
-                        <div class="flex-center" style="position: relative; width: 100%;">
-                            <button id="shutter-btn" style="width: 76px; height: 76px; border-radius: 50%; background: white; border: 4px solid var(--glass-border); padding: 3px; cursor: pointer; outline: none; transition: transform 0.1s; display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 30px rgba(0,0,0,0.3);">
-                                <div id="shutter-inner" style="width: 100%; height: 100%; border-radius: 50%; background: #ffffff; border: 1px solid #e2e8f0; transition: background 0.1s;"></div>
-                            </button>
-                        </div>
-                        
-                    </div>
-                </div>
-            </div>
-        `;
-        initBooth();
-    } else if (view === 'dashboard') {
+    if (view === 'dashboard') {
         contentElement.innerHTML = document.getElementById('view-dashboard').innerHTML;
         updateUserUI();
         fetchFriends(true); // Only active friends for dashboard
@@ -299,88 +239,6 @@ function renderDynamicView(view) {
 }
 
 // --- View Logic ---
-
-async function initBooth() {
-    const video = document.getElementById('camera-feed');
-    const shutter = document.getElementById('shutter-btn');
-    const capturedContainer = document.getElementById('captured-strips');
-    
-    try {
-        mediaStream = await navigator.mediaDevices.getUserMedia({ 
-            video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 720 } } 
-        });
-        video.srcObject = mediaStream;
-    } catch (err) {
-        showToast("Camera access denied!", "error");
-        showView('dashboard');
-        return;
-    }
-
-    // Get Location
-    navigator.geolocation.getCurrentPosition(pos => {
-        userLocation = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-    });
-
-    if (activeSession) {
-        shutter.innerText = "Start Shared Session";
-        shutter.style.width = "auto";
-        shutter.style.borderRadius = "30px";
-        shutter.style.padding = "1rem 2rem";
-        
-        // Start polling for session status (wait for both to be in booth)
-        const checkReady = setInterval(async () => {
-            if (activeSession.status === 'capturing') {
-                clearInterval(checkReady);
-                startCaptureSequence();
-            }
-        }, 2000);
-    }
-
-    shutter.onclick = async () => {
-        if (activeSession) {
-            // Signal to start capturing
-            const token = await currentUser.getIdToken();
-            await fetch(`${API_BASE_URL}/api/booth/session/${activeSession.id}/start`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-        } else {
-            startCaptureSequence();
-        }
-    };
-    
-    // Custom Shutter Press Effect
-    const shutterInner = document.getElementById('shutter-inner');
-    if (shutterInner) {
-        shutter.addEventListener('mousedown', () => shutterInner.style.background = '#e2e8f0');
-        shutter.addEventListener('mouseup', () => shutterInner.style.background = '#ffffff');
-        shutter.addEventListener('touchstart', () => shutterInner.style.background = '#e2e8f0');
-        shutter.addEventListener('touchend', () => shutterInner.style.background = '#ffffff');
-    }
-
-    // Mode Toggle Logic
-    const btnStrip = document.getElementById('mode-strip');
-    const btnPostcard = document.getElementById('mode-postcard');
-    
-    if (btnStrip && btnPostcard) {
-        btnStrip.onclick = () => {
-            btnStrip.classList.add('active');
-            btnPostcard.classList.remove('active');
-            btnStrip.style.background = 'var(--primary)';
-            btnStrip.style.color = 'white';
-            btnPostcard.style.background = 'transparent';
-            btnPostcard.style.color = 'var(--text-muted)';
-        };
-        btnPostcard.onclick = () => {
-            btnPostcard.classList.add('active');
-            btnStrip.classList.remove('active');
-            btnPostcard.style.background = 'var(--primary)';
-            btnPostcard.style.color = 'white';
-            btnStrip.style.background = 'transparent';
-            btnStrip.style.color = 'var(--text-muted)';
-        };
-    }
-}
 
 async function startCamera() {
     const video = document.getElementById('video');
