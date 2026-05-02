@@ -48,6 +48,7 @@ function init() {
                 window.appHeartbeat = setInterval(() => {
                     syncProfile(currentUser);
                     fetchNotifications();
+                    if (currentView === 'dashboard') fetchFriends(true); // Keep dashboard active list fresh
                 }, 60000); // Every minute
             }
             
@@ -829,13 +830,22 @@ function renderFriendsList(friends) {
             ? `<img src="${f.photo_url}" style="width: 50px; height: 50px; border-radius: 14px; object-fit: cover;">`
             : `<div style="width: 50px; height: 50px; border-radius: 14px; background: ${avatarBg}; display: flex; align-items: center; justify-content: center; color: var(--text-muted); border: 1px solid var(--glass-border);"><i data-lucide="user" style="width: 22px;"></i></div>`;
 
+        // Calculate Online Status (Active in last 5 mins)
+        const isOnline = f.last_seen && (new Date() - new Date(f.last_seen)) < 300000;
+        const statusBadge = isOnline 
+            ? `<span style="color: #10b981; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; gap: 4px;"><span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%;"></span> Online</span>`
+            : `<span style="color: var(--text-muted); font-size: 0.7rem; font-weight: 600;">Offline</span>`;
+
         return `
-        <div class="glass-card fade-in" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-left: 4px solid var(--primary);">
+        <div class="glass-card fade-in" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-left: 4px solid ${isOnline ? '#10b981' : 'var(--glass-border)'};">
             <div style="display: flex; align-items: center; gap: 1rem;">
-                ${avatarHtml}
+                <div style="position: relative;">
+                    ${avatarHtml}
+                    ${isOnline ? `<div style="position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; background: #10b981; border-radius: 50%; border: 2px solid var(--bg-dark);"></div>` : ''}
+                </div>
                 <div>
                     <p style="font-weight: 700; margin: 0; font-size: 1rem;">${f.display_name || 'Anonymous'}</p>
-                    <p class="text-muted" style="font-size: 0.75rem; margin: 0; font-weight: 500;">Connected Friend</p>
+                    ${statusBadge}
                 </div>
             </div>
             <button onclick="unfollowUser('${f.uid}', this)" class="btn btn-secondary" style="padding: 0.5rem 0.75rem; font-size: 0.8rem; border-radius: 10px;">Unfriend</button>
