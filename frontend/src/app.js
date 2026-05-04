@@ -1300,6 +1300,7 @@ window.showPrint = (index) => {
                 <img src="${printUrl}" style="max-width: 100%; max-height: 80vh; border: 12px solid white; border-radius: 4px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
                 <div style="display: flex; gap: 1rem;">
                     <a href="${printUrl}" download="lumina-capture.png" class="btn btn-primary" style="padding: 0.75rem 2rem; border-radius: 30px;">Download</a>
+                    <button onclick="window.deletePrint('${printUrl}')" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px; background: rgba(255, 69, 0, 0.1); color: var(--accent); border: 1px solid rgba(255, 69, 0, 0.3);">Delete</button>
                     <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-secondary" style="padding: 0.75rem 2rem; border-radius: 30px;">Close</button>
                 </div>
             </div>
@@ -1320,6 +1321,7 @@ window.openPrintModal = (printUrl) => {
             <img src="${printUrl}" style="max-width:100%;max-height:80vh;border:12px solid white;border-radius:4px;box-shadow:0 25px 60px rgba(0,0,0,0.6);" loading="lazy">
             <div style="display:flex;gap:1rem;">
                 <button onclick="window.downloadPrint('${printUrl}')" class="btn btn-primary" style="padding:0.75rem 2rem;border-radius:30px;"><i data-lucide="download" style="width:18px;"></i> Save</button>
+                <button onclick="window.deletePrint('${printUrl}')" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px; background: rgba(255, 69, 0, 0.1); color: var(--accent); border: 1px solid rgba(255, 69, 0, 0.3);"><i data-lucide="trash-2" style="width:18px;"></i> Delete</button>
                 <button onclick="this.closest('[style*=fixed]').remove()" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px;">Close</button>
             </div>
         </div>
@@ -1651,6 +1653,74 @@ window.markNotificationRead = async (id, btn) => {
         }
     } catch (e) {
         console.error("Error marking as read:", e);
+    }
+};
+
+// --- Account & Settings Handlers ---
+window.openModal = (id) => {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.remove('hidden');
+};
+
+window.closeModal = (id) => {
+    const modal = document.getElementById(id);
+    if (modal) modal.classList.add('hidden');
+};
+
+window.deletePrint = async (printUrl) => {
+    if (!confirm("Are you sure you want to delete this memory?")) return;
+    try {
+        const token = await currentUser.getIdToken();
+        const res = await fetch(`${API_BASE_URL}/api/prints/delete`, {
+            method: 'POST',
+            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ imageData: printUrl })
+        });
+        if (res.ok) {
+            showToast("Print deleted successfully.", "success");
+            
+            // Close any open modals
+            const openModals = document.querySelectorAll('[style*=fixed]');
+            openModals.forEach(m => {
+                if (m.innerHTML.includes(printUrl)) m.remove();
+            });
+
+            // Refresh prints
+            await window.loadRecentPrints();
+        } else {
+            showToast("Failed to delete print.", "error");
+        }
+    } catch (e) {
+        showToast("Error deleting print.", "error");
+    }
+};
+
+window.confirmDeleteAccount = async () => {
+    if (!confirm("⚠️ WARNING: This will permanently delete your account, friends list, and all your captured photos. This action cannot be undone.\n\nAre you absolutely sure?")) return;
+    
+    try {
+        const token = await currentUser.getIdToken();
+        
+        // 1. Delete DB Data
+        await fetch(`${API_BASE_URL}/api/account`, {
+            method: 'DELETE',
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        
+        // 2. Delete Firebase Auth User
+        await currentUser.delete();
+        
+        // 3. Clear local storage & logout
+        localStorage.clear();
+        showToast("Account permanently deleted.", "success");
+        window.location.reload();
+    } catch (e) {
+        console.error("Delete Account Error:", e);
+        if (e.code === 'auth/requires-recent-login') {
+            showToast("Please log out and log back in before deleting your account.", "error");
+        } else {
+            showToast("Failed to delete account. Please try again.", "error");
+        }
     }
 };
 

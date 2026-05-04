@@ -349,9 +349,51 @@
                 </div>
             </div>
 
-            <button class="btn btn-primary" style="width: 100%; border-radius: 12px;" onclick="openEditModal()">Edit Profile Settings</button>
+            <button class="btn btn-primary" style="width: 100%; border-radius: 12px; margin-bottom: 0.5rem;" onclick="openEditModal()">Edit Profile Settings</button>
+            <button class="btn btn-secondary" style="width: 100%; border-radius: 12px; background: rgba(255, 69, 0, 0.1); color: var(--accent); border: 1px solid rgba(255, 69, 0, 0.3);" onclick="confirmDeleteAccount()">Delete Account</button>
             <input type="file" id="profile-upload" class="hidden" accept="image/*" onchange="handleProfileUpload(this)">
+
+            <div style="margin-top: 2.5rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 1.5rem; text-align: center; display: flex; flex-direction: column; gap: 0.5rem;">
+                <div style="display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 0.5rem;">
+                    <a href="#" onclick="openModal('about-modal')" style="color: var(--text-muted); font-size: 0.75rem; text-decoration: none;">About</a>
+                    <a href="#" onclick="openModal('privacy-modal')" style="color: var(--text-muted); font-size: 0.75rem; text-decoration: none;">Privacy Policy</a>
+                    <a href="#" onclick="openModal('terms-modal')" style="color: var(--text-muted); font-size: 0.75rem; text-decoration: none;">User Agreement</a>
+                </div>
+            </div>
           </div>
+        </div>
+      </div>
+
+      <!-- About/Legal Modals -->
+      <div id="about-modal" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
+        <div class="glass-card" style="width: 100%; max-width: 500px; border: 1px solid var(--glass-border); text-align: left;">
+            <h2 style="color: var(--primary); margin-bottom: 1rem;">About Lumina</h2>
+            <p class="text-muted" style="margin-bottom: 1.5rem; line-height: 1.6;">Lumina is a web-based photobooth built to capture memories and connect friends.</p>
+            
+            <h3 style="font-size: 1rem; margin-bottom: 0.5rem;">Developer</h3>
+            <p class="text-muted" style="margin-bottom: 0.5rem;"><strong>Jemmy Francisco</strong></p>
+            <p class="text-muted" style="margin-bottom: 0.5rem;"><i data-lucide="mail" style="width:14px; margin-right: 8px;"></i>jemmyfrancisco30@gmail.com</p>
+            <p class="text-muted" style="margin-bottom: 2rem;"><i data-lucide="facebook" style="width:14px; margin-right: 8px;"></i><a href="https://www.facebook.com/jemmy.francisco.98" target="_blank" style="color: var(--secondary); text-decoration: none;">fb.com/jemmy.francisco.98</a></p>
+            
+            <button class="btn btn-secondary" style="width: 100%;" onclick="closeModal('about-modal')">Close</button>
+        </div>
+      </div>
+
+      <div id="privacy-modal" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
+        <div class="glass-card" style="width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--glass-border); text-align: left;">
+            <h2 style="color: var(--primary); margin-bottom: 1rem;">Privacy Policy</h2>
+            <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.85rem; line-height: 1.6;">Your privacy is important. We only store the data necessary to provide you with the Lumina photobooth experience (your profile and friend connections).</p>
+            <p class="text-muted" style="margin-bottom: 2rem; font-size: 0.85rem; line-height: 1.6;"><strong>Data Retention:</strong> Any photo captured in the Studio is securely stored in your gallery for exactly 72 hours (3 days). After 3 days, the system automatically and permanently deletes the image from the database.</p>
+            <button class="btn btn-secondary" style="width: 100%;" onclick="closeModal('privacy-modal')">Close</button>
+        </div>
+      </div>
+
+      <div id="terms-modal" class="hidden" style="position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px); z-index: 3000; display: flex; align-items: center; justify-content: center; padding: 1.5rem;">
+        <div class="glass-card" style="width: 100%; max-width: 500px; max-height: 80vh; overflow-y: auto; border: 1px solid var(--glass-border); text-align: left;">
+            <h2 style="color: var(--primary); margin-bottom: 1rem;">User Agreement</h2>
+            <p class="text-muted" style="margin-bottom: 1rem; font-size: 0.85rem; line-height: 1.6;">By using Lumina, you agree to treat the community with respect. Do not upload or capture inappropriate content.</p>
+            <p class="text-muted" style="margin-bottom: 2rem; font-size: 0.85rem; line-height: 1.6;">Lumina is provided "as is", without warranty of any kind. We reserve the right to remove accounts that violate these terms.</p>
+            <button class="btn btn-secondary" style="width: 100%;" onclick="closeModal('terms-modal')">Close</button>
         </div>
       </div>
 

@@ -590,6 +590,35 @@ app.get('/api/prints/recent', authenticateUser, async (req, res) => {
   }
 });
 
+// 13. Delete a Print
+app.post('/api/prints/delete', authenticateUser, async (req, res) => {
+  const { imageData } = req.body;
+  if (!imageData) return res.status(400).json({ error: 'No image data provided' });
+  try {
+    await pool.query(
+      'DELETE FROM recent_prints WHERE uid = $1 AND image_data = $2',
+      [req.user.uid, imageData]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Delete print error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 14. Delete Account
+app.delete('/api/account', authenticateUser, async (req, res) => {
+  try {
+    // Due to ON DELETE CASCADE on our schema, deleting from profiles
+    // will automatically delete their booth_sessions, recent_prints, and notifications
+    await pool.query('DELETE FROM profiles WHERE uid = $1', [req.user.uid]);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Delete account error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok', db: 'aiven-postgresql' }));
 
