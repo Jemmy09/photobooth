@@ -128,6 +128,7 @@ lumina/
 
 | Version | Notes |
 |---|---|
+| **v1.5.5** | **STABLE** — Added Portrait Blur and Ocean filters to Studio |
 | **v1.5.4** | **STABLE** — Added Snapchat-inspired professional lenses (Bronzed, Beauty, Golden Hour, Silver Screen) |
 | **v1.5.3** | **STABLE** — Account & Gallery Deletion Logic, Modal Routing Fixes, Legal Policies |
 | **v1.5.0** | **STABLE** — Offline-first Gallery, Aiven DB Sync, 3-day Auto-Purge, new Custom Favicon |
