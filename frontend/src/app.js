@@ -2083,39 +2083,7 @@ window.closeModal = (id) => {
     if (modal) modal.classList.add('hidden');
 };
 
-window.deletePrint = async (index) => {
-    const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
-    const printUrl = prints[index];
-    if (!printUrl) return;
-    
-    if (!confirm("Are you sure you want to delete this memory?")) return;
-    try {
-        const token = await currentUser.getIdToken();
-        const res = await fetch(`${API_BASE_URL}/api/prints/delete`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ imageData: printUrl })
-        });
-        if (res.ok) {
-            showToast("Print deleted successfully.", "success");
-            
-            // Delete from local cache
-            prints.splice(index, 1);
-            localStorage.setItem('recent_prints', JSON.stringify(prints));
-            
-            // Close any open modals
-            const openModals = document.querySelectorAll('[style*=fixed]');
-            openModals.forEach(m => m.remove());
-
-            // Refresh prints
-            await window.loadRecentPrints();
-        } else {
-            showToast("Failed to delete print.", "error");
-        }
-    } catch (e) {
-        showToast("Error deleting print.", "error");
-    }
-};
+// Cloud-First Delete Handler (Deprecated local version removed)
 
 window.confirmDeleteAccount = async () => {
     if (!confirm("⚠️ WARNING: This will permanently delete your account, friends list, and all your captured photos. This action cannot be undone.\n\nAre you absolutely sure?")) return;
