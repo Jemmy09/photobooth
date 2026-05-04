@@ -1,18 +1,9 @@
 <p align="center">
-  <svg width="80" height="80" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
-    <circle cx="14" cy="18" r="10" stroke="#FF6B2B" stroke-width="2.5"/>
-    <circle cx="22" cy="18" r="10" stroke="#00D68F" stroke-width="2.5"/>
-    <path d="M 18 8.84 A 10 10 0 0 1 18 27.16 A 10 10 0 0 1 18 8.84 Z" fill="url(#g)"/>
-    <defs>
-      <linearGradient id="g" x1="18" y1="8" x2="18" y2="28" gradientUnits="userSpaceOnUse">
-        <stop stop-color="#FF6B2B"/>
-        <stop offset="1" stop-color="#00D68F"/>
-      </linearGradient>
-    </defs>
-  </svg>
+  <img src="frontend/public/lumina_logo.png" alt="Lumina Logo" width="280" />
 </p>
 
 <h1 align="center">Lumina</h1>
+
 
 <p align="center">
   <i>A photobooth experience for the modern web. Capture, connect, and share — beautifully.</i>
