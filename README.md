@@ -128,6 +128,7 @@ lumina/
 
 | Version | Notes |
 |---|---|
+| **v1.6.0** | **STABLE** — Unified Filter Engine v2.0: Optimized overlays, Bokeh safety checks, and Puppy V2 logic |
 | **v1.5.9** | **STABLE** — Puppy Lens V2: Split ears/muzzle assets + Blushing cheeks + Skin smoothing |
 | **v1.5.8** | **STABLE** — Optimized Puppy Lens for better face alignment & transparency |
 | **v1.5.7** | **STABLE** — Added "Puppy Lens" (Dog ears/nose overlay) for the Studio |
