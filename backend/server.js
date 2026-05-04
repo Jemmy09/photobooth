@@ -82,7 +82,7 @@ const pool = new Pool({
       );
     `);
 
-    console.log("✨ PHOTOBOOTH DATABASE IS READY!");
+    console.log("✨ LUMINA DATABASE IS READY!");
   } catch (err) {
     console.error("❌ DATABASE SETUP FAILED:", err.message);
   }
@@ -523,8 +523,75 @@ app.delete('/api/notifications', authenticateUser, async (req, res) => {
   }
 });
 
+// 11. Save a Print (auto-purge prints older than 3 days per user)
+app.post('/api/prints/save', authenticateUser, async (req, res) => {
+  const { imageData } = req.body;
+  if (!imageData) return res.status(400).json({ error: 'No image data provided' });
+  try {
+    // Step 1: Insert the new print
+    await pool.query(
+      'INSERT INTO recent_prints (uid, image_data) VALUES ($1, $2)',
+      [req.user.uid, imageData]
+    );
+
+    // Step 2: Auto-purge prints older than 3 days for this user
+    await pool.query(
+      `DELETE FROM recent_prints
+       WHERE uid = $1
+         AND created_at < NOW() - INTERVAL '3 days'`,
+      [req.user.uid]
+    );
+
+    // Step 3: Keep only the 3 most recent prints per user (enforce hard cap)
+    await pool.query(
+      `DELETE FROM recent_prints
+       WHERE uid = $1
+         AND id NOT IN (
+           SELECT id FROM recent_prints
+           WHERE uid = $1
+           ORDER BY created_at DESC
+           LIMIT 3
+         )`,
+      [req.user.uid]
+    );
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Save print error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 12. Get Recent Prints (last 3, max 3 days old)
+app.get('/api/prints/recent', authenticateUser, async (req, res) => {
+  try {
+    // Also auto-purge stale prints on read
+    await pool.query(
+      `DELETE FROM recent_prints
+       WHERE uid = $1
+         AND created_at < NOW() - INTERVAL '3 days'`,
+      [req.user.uid]
+    );
+
+    const result = await pool.query(
+      `SELECT image_data, created_at
+       FROM recent_prints
+       WHERE uid = $1
+       ORDER BY created_at DESC
+       LIMIT 3`,
+      [req.user.uid]
+    );
+
+    // Return array of image data URLs
+    res.json(result.rows.map(r => r.image_data));
+  } catch (err) {
+    console.error('Fetch prints error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // Health check
-app.get('/health', (req, res) => res.json({ status: 'ok' }));
+app.get('/health', (req, res) => res.json({ status: 'ok', db: 'aiven-postgresql' }));
 
 const PORT = process.env.PORT || 3010;
-app.listen(PORT, () => console.log(`PhotoBooth Backend running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Lumina Backend running on port ${PORT}`));
