@@ -1,5 +1,5 @@
 /** 
- * Lumina Engine v1.5.6 STABLE
+ * Lumina Engine v1.5.7 STABLE
  * Professional Filter System & Pro Controls
  */
 import './style.css';
@@ -43,7 +43,8 @@ const LENSES = {
     golden: { name: 'Golden', filter: 'sepia(0.4) saturate(1.8) brightness(1.1) hue-rotate(-10deg)', icon: 'sparkles' },
     silver: { name: 'Silver', filter: 'grayscale(1) brightness(1.1) contrast(1.3) sepia(0.1)', icon: 'aperture' },
     portrait: { name: 'Portrait', filter: 'brightness(1.05) saturate(1.2) contrast(1.1)', icon: 'camera', bokeh: true },
-    ocean: { name: 'Ocean', filter: 'hue-rotate(180deg) saturate(1.2) brightness(1.1) contrast(1.1)', icon: 'droplet' }
+    ocean: { name: 'Ocean', filter: 'hue-rotate(180deg) saturate(1.2) brightness(1.1) contrast(1.1)', icon: 'droplet' },
+    puppy: { name: 'Puppy', filter: 'brightness(1.05) saturate(1.1)', icon: 'dog', puppy: true }
 };
 let mediaStream = null;
 let photos = [];
@@ -60,7 +61,7 @@ function init() {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            console.log("🚀 Lumina System — v1.5.6 STABLE — Authenticated & Active");
+            console.log("🚀 Lumina System — v1.5.7 STABLE — Authenticated & Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             
@@ -309,6 +310,7 @@ window.applyLens = (lensKey) => {
     currentLens = lensKey;
     const video = document.getElementById('video');
     const bokeh = document.getElementById('bokeh-overlay');
+    const puppy = document.getElementById('puppy-overlay');
     
     if (video) {
         video.style.filter = LENSES[lensKey].filter;
@@ -319,6 +321,14 @@ window.applyLens = (lensKey) => {
             bokeh.classList.remove('hidden');
         } else {
             bokeh.classList.add('hidden');
+        }
+    }
+
+    if (puppy) {
+        if (LENSES[lensKey].puppy) {
+            puppy.classList.remove('hidden');
+        } else {
+            puppy.classList.add('hidden');
         }
     }
     
@@ -411,6 +421,27 @@ async function captureImage() {
             ctx.scale(-1, 1);
         }
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    }
+    
+    // If Puppy is active, overlay the dog filter image
+    if (lens.puppy) {
+        const puppyImg = document.getElementById('puppy-overlay');
+        if (puppyImg && puppyImg.complete) {
+            // Draw overlay on top of the sharp image
+            // We need to account for scale/translation
+            ctx.save();
+            // Puppy filter should NOT be flipped back if we already flipped the canvas for user mode
+            // because the overlay is already designed for the screen view
+            // But wait, ctx.drawImage uses current transformation matrix.
+            // If we are in user mode, the canvas is flipped.
+            // If the overlay image is symmetrical, it's fine. If not, we might need to flip it back.
+            // Usually, static overlays should stay relative to the screen.
+            
+            // To keep it simple: Reset transformation to draw the overlay normally on top
+            ctx.setTransform(1, 0, 0, 1, 0, 0); 
+            ctx.drawImage(puppyImg, 0, -canvas.height * 0.05, canvas.width, canvas.height);
+            ctx.restore();
+        }
     }
     
     return canvas.toDataURL('image/png');
