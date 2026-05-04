@@ -1,6 +1,6 @@
 /** 
- * Lumina Engine v1.7.3 STABLE
- * Professional Filter System & Pro Controls
+ * Lumina Engine v1.8.1 STABLE
+ * Cloud-First Gallery Sync & Anti-Distortion Rendering
  */
 import './style.css';
 import firebase from 'firebase/compat/app';
@@ -79,7 +79,7 @@ function init() {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            console.log("🚀 Lumina System — v1.7.3 STABLE — Authenticated & Active");
+            console.log("🚀 Lumina System — v1.8.1 STABLE — Authenticated & Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             loadModels(); // Initialize Face Recognition Models
