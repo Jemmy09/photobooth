@@ -415,8 +415,6 @@ async function captureImage() {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     }
     
-    }
-    
     return canvas.toDataURL('image/png');
 }
 
