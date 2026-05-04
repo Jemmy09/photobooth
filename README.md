@@ -128,15 +128,16 @@ lumina/
 
 | Version | Notes |
 |---|---|
-| **v1.6.0** | **STABLE** — Unified Filter Engine v2.0: Optimized overlays, Bokeh safety checks, and Puppy V2 logic |
-| **v1.5.9** | **STABLE** — Puppy Lens V2: Split ears/muzzle assets + Blushing cheeks + Skin smoothing |
-| **v1.5.8** | **STABLE** — Optimized Puppy Lens for better face alignment & transparency |
-| **v1.5.7** | **STABLE** — Added "Puppy Lens" (Dog ears/nose overlay) for the Studio |
-| **v1.5.6** | **STABLE** — Implemented "Portrait Bokeh" engine with real-time radial blur simulation |
-| **v1.5.5** | **STABLE** — Added Portrait Blur and Ocean filters to Studio |
-| **v1.5.4** | **STABLE** — Added Snapchat-inspired professional lenses (Bronzed, Beauty, Golden Hour, Silver Screen) |
-| **v1.5.3** | **STABLE** — Account & Gallery Deletion Logic, Modal Routing Fixes, Legal Policies |
-| **v1.5.0** | **STABLE** — Offline-first Gallery, Aiven DB Sync, 3-day Auto-Purge, new Custom Favicon |
+| **v1.6.1** | **STABLE** — Removed Puppy filter and optimized Studio for high-performance professional lenses |
+| **v1.6.0** | Unified Filter Engine v2.0: Optimized overlays, Bokeh safety checks, and Puppy V2 logic |
+| **v1.5.9** | Puppy Lens V2: Split ears/muzzle assets + Blushing cheeks + Skin smoothing |
+| **v1.5.8** | Optimized Puppy Lens for better face alignment & transparency |
+| **v1.5.7** | Added "Puppy Lens" (Dog ears/nose overlay) for the Studio |
+| **v1.5.6** | Implemented "Portrait Bokeh" engine with real-time radial blur simulation |
+| **v1.5.5** | Added Portrait Blur and Ocean filters to Studio |
+| **v1.5.4** | Added Snapchat-inspired professional lenses (Bronzed, Beauty, Golden Hour, Silver Screen) |
+| **v1.5.3** | Account & Gallery Deletion Logic, Modal Routing Fixes, Legal Policies |
+| **v1.5.0** | Offline-first Gallery, Aiven DB Sync, 3-day Auto-Purge, new Custom Favicon |
 | **v1.4.0** | Lumina rebrand, tangerine × mint design system, camera flip fix, functional Studio back button |
 | **v1.3.5** | Notification controls, dashboard gallery optimization |
 | **v1.3.0** | Design Update — Glassmorphism UI, real-time presence |
