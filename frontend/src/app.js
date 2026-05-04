@@ -958,40 +958,23 @@ window.loadRecentPrints = async () => {
         container.style.padding = '0';
         
         container.innerHTML = `
-            <div style="display: flex; gap: 1rem; overflow-x: auto; width: 100%; padding: 0.5rem 0;" class="no-scrollbar">
+            <div style="display: flex; gap: 1.25rem; overflow-x: auto; width: 100%; padding: 1rem 0; scroll-snap-type: x mandatory;" class="no-scrollbar">
                 ${prints.map((p, index) => {
                     const url = typeof p === 'string' ? p : p.url;
                     const timestamp = typeof p === 'string' ? Date.now() : p.timestamp;
                     
-                    // Calculate remaining time (72 hours = 259200000ms)
                     const lifeSpan = 72 * 60 * 60 * 1000;
-                    const elapsed = Date.now() - timestamp;
-                    const remaining = Math.max(0, lifeSpan - elapsed);
-                    
+                    const remaining = Math.max(0, lifeSpan - (Date.now() - timestamp));
                     const hours = Math.floor(remaining / (1000 * 60 * 60));
-                    const mins = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
                     
-                    const timeLabel = remaining > 0 ? `${hours}h ${mins}m left` : 'Expiring...';
-                    const colorLabel = hours < 6 ? 'var(--accent)' : 'var(--secondary)';
-
                     return `
-                        <div style="position: relative; flex: 0 0 auto; height: 300px; border-radius: 12px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: #000;" onclick="window.openPrintModal(${index})" class="gallery-item-hover">
-                            <img src="${url}" style="height: 100%; width: auto; object-fit: contain; display: block;" loading="lazy">
+                        <div style="position: relative; flex: 0 0 auto; height: 380px; border-radius: 16px; overflow: hidden; box-shadow: var(--card-shadow); border: 1px solid var(--glass-border); cursor: pointer; transition: transform 0.3s ease; scroll-snap-align: start; background: #000;" onclick="window.openPrintModal(${index})" class="gallery-item-hover">
+                            <img src="${url}" style="height: 100%; width: auto; display: block;" loading="lazy">
                             
-                            <!-- Expiration Badge -->
-                            <div style="position: absolute; top: 12px; left: 12px; background: rgba(13, 17, 23, 0.85); backdrop-filter: blur(12px); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; gap: 8px; z-index: 10; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
-                                <div style="width: 8px; height: 8px; border-radius: 50%; background: ${colorLabel}; box-shadow: 0 0 10px ${colorLabel};"></div>
-                                <span style="font-size: 0.7rem; font-weight: 800; color: white; letter-spacing: 0.03em; text-transform: uppercase;">${timeLabel}</span>
-                            </div>
-
-                            <!-- Bottom Action Overlay -->
-                            <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; gap: 8px; opacity: 0.9;">
-                                <button onclick="event.stopPropagation(); window.downloadPrintLocally(${index})" class="btn-icon" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.2); width: 36px; height: 36px; border-radius: 50%;">
-                                    <i data-lucide="download" style="width: 18px; height: 18px; color: white;"></i>
-                                </button>
-                                <button onclick="event.stopPropagation(); window.deletePhoto(${index})" class="btn-icon" style="background: rgba(239, 68, 68, 0.2); backdrop-filter: blur(15px); border: 1px solid rgba(239, 68, 68, 0.4); width: 36px; height: 36px; border-radius: 50%;">
-                                    <i data-lucide="trash-2" style="width: 18px; height: 18px; color: #ef4444;"></i>
-                                </button>
+                            <!-- Sleek Mini Badge -->
+                            <div style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); padding: 4px 8px; border-radius: 8px; font-size: 0.6rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(255,255,255,0.1);">
+                                <div style="width: 5px; height: 5px; border-radius: 50%; background: ${hours < 6 ? 'var(--accent)' : 'var(--secondary)'};"></div>
+                                ${hours}H
                             </div>
                         </div>
                     `;
