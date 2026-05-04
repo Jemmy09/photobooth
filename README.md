@@ -128,6 +128,7 @@ lumina/
 
 | Version | Notes |
 |---|---|
+| **v1.5.7** | **STABLE** — Added "Puppy Lens" (Dog ears/nose overlay) for the Studio |
 | **v1.5.6** | **STABLE** — Implemented "Portrait Bokeh" engine with real-time radial blur simulation |
 | **v1.5.5** | **STABLE** — Added Portrait Blur and Ocean filters to Studio |
 | **v1.5.4** | **STABLE** — Added Snapchat-inspired professional lenses (Bronzed, Beauty, Golden Hour, Silver Screen) |
