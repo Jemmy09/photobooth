@@ -542,7 +542,7 @@ app.post('/api/prints/save', authenticateUser, async (req, res) => {
       [req.user.uid]
     );
 
-    // Step 3: Keep only the 3 most recent prints per user (enforce hard cap)
+    // Step 3: Keep only the 20 most recent prints per user (enforce hard cap)
     await pool.query(
       `DELETE FROM recent_prints
        WHERE uid = $1
@@ -550,7 +550,7 @@ app.post('/api/prints/save', authenticateUser, async (req, res) => {
            SELECT id FROM recent_prints
            WHERE uid = $1
            ORDER BY created_at DESC
-           LIMIT 3
+           LIMIT 20
          )`,
       [req.user.uid]
     );
@@ -578,7 +578,7 @@ app.get('/api/prints/recent', authenticateUser, async (req, res) => {
        FROM recent_prints
        WHERE uid = $1
        ORDER BY created_at DESC
-       LIMIT 3`,
+       LIMIT 20`,
       [req.user.uid]
     );
 
