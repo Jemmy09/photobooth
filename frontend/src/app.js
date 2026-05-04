@@ -38,8 +38,10 @@ const LENSES = {
     noir: { name: 'Noir', filter: 'grayscale(1) contrast(1.4) brightness(0.9)', icon: 'moon' },
     vintage: { name: 'Vintage', filter: 'sepia(0.5) contrast(1.1) brightness(1.05)', icon: 'film' },
     dreamy: { name: 'Dreamy', filter: 'blur(0.5px) brightness(1.1) saturate(0.8) contrast(0.9)', icon: 'cloud' },
-    cool: { name: 'Cool', filter: 'hue-rotate(180deg) saturate(0.8) brightness(1.1)', icon: 'snowflake' },
-    warm: { name: 'Warm', filter: 'sepia(0.3) saturate(1.5) brightness(1.1)', icon: 'sun' }
+    bronzed: { name: 'Bronzed', filter: 'sepia(0.6) contrast(1.1) brightness(1.1) saturate(1.2)', icon: 'award' },
+    beauty: { name: 'Beauty', filter: 'blur(0.4px) brightness(1.1) contrast(1.05) saturate(1.1)', icon: 'heart' },
+    golden: { name: 'Golden', filter: 'sepia(0.4) saturate(1.8) brightness(1.1) hue-rotate(-10deg)', icon: 'sparkles' },
+    silver: { name: 'Silver', filter: 'grayscale(1) brightness(1.1) contrast(1.3) sepia(0.1)', icon: 'aperture' }
 };
 let mediaStream = null;
 let photos = [];
