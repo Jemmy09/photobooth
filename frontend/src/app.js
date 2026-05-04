@@ -1,5 +1,5 @@
 /** 
- * Lumina Engine v1.5.9 STABLE
+ * Lumina Engine v1.6.0 STABLE
  * Professional Filter System & Pro Controls
  */
 import './style.css';
@@ -42,9 +42,9 @@ const LENSES = {
     beauty: { name: 'Beauty', filter: 'blur(0.4px) brightness(1.1) contrast(1.05) saturate(1.1)', icon: 'heart' },
     golden: { name: 'Golden', filter: 'sepia(0.4) saturate(1.8) brightness(1.1) hue-rotate(-10deg)', icon: 'sparkles' },
     silver: { name: 'Silver', filter: 'grayscale(1) brightness(1.1) contrast(1.3) sepia(0.1)', icon: 'aperture' },
-    portrait: { name: 'Portrait', filter: 'brightness(1.05) saturate(1.2) contrast(1.1)', icon: 'camera', bokeh: true },
-    ocean: { name: 'Ocean', filter: 'hue-rotate(180deg) saturate(1.2) brightness(1.1) contrast(1.1)', icon: 'droplet' },
-    puppy: { name: 'Puppy', filter: 'blur(0.3px) brightness(1.1) saturate(1.2) contrast(1.05)', icon: 'dog', puppy: true }
+    portrait: { name: 'Portrait', filter: 'brightness(1.08) contrast(1.05) saturate(1.1) sepia(0.05)', icon: 'camera', bokeh: true },
+    ocean: { name: 'Ocean', filter: 'hue-rotate(180deg) saturate(1.4) brightness(1.1) contrast(1.1)', icon: 'droplet' },
+    puppy: { name: 'Puppy', filter: 'blur(0.2px) brightness(1.1) saturate(1.2) contrast(1.05)', icon: 'dog', puppy: true }
 };
 let mediaStream = null;
 let photos = [];
@@ -61,7 +61,7 @@ function init() {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            console.log("🚀 Lumina System — v1.5.9 STABLE — Authenticated & Active");
+            console.log("🚀 Lumina System — v1.6.0 STABLE — Authenticated & Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             
@@ -307,8 +307,11 @@ window.toggleLensBar = () => {
 };
 
 window.applyLens = (lensKey) => {
+    if (!LENSES[lensKey]) lensKey = 'none';
     currentLens = lensKey;
+    
     const video = document.getElementById('video');
+    const bokeh = document.getElementById('bokeh-overlay');
     const ears = document.getElementById('puppy-ears');
     const muzzle = document.getElementById('puppy-muzzle');
     
@@ -316,23 +319,15 @@ window.applyLens = (lensKey) => {
         video.style.filter = LENSES[lensKey].filter;
     }
     
+    // Toggle Bokeh (Portrait)
     if (bokeh) {
-        if (LENSES[lensKey].bokeh) {
-            bokeh.classList.remove('hidden');
-        } else {
-            bokeh.classList.add('hidden');
-        }
+        bokeh.classList.toggle('hidden', !LENSES[lensKey].bokeh);
     }
 
-    if (ears && muzzle) {
-        if (LENSES[lensKey].puppy) {
-            ears.classList.remove('hidden');
-            muzzle.classList.remove('hidden');
-        } else {
-            ears.classList.add('hidden');
-            muzzle.classList.add('hidden');
-        }
-    }
+    // Toggle Puppy Assets
+    const isPuppy = LENSES[lensKey].puppy;
+    if (ears) ears.classList.toggle('hidden', !isPuppy);
+    if (muzzle) muzzle.classList.toggle('hidden', !isPuppy);
     
     // Highlight active lens in UI
     document.querySelectorAll('.lens-item').forEach(item => {
@@ -343,6 +338,9 @@ window.applyLens = (lensKey) => {
         
         const label = item.querySelector('span');
         if (label) label.style.color = isActive ? 'white' : 'var(--text-muted)';
+        
+        const icon = item.querySelector('i');
+        if (icon) icon.style.color = isActive ? 'white' : 'var(--text-muted)';
     });
 }
 
