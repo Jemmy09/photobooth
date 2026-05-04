@@ -851,8 +851,8 @@ function finalizePrint(canvas, frameColor) {
         }, 100);
     }
     
+    // Single call to sync engine
     savePrintToDatabase(dataUrl);
-    savePrintLocally(dataUrl);
     
     if (window.loadRecentPrints) window.loadRecentPrints();
     
@@ -912,22 +912,20 @@ window.downloadPrint = async (url) => {
 
 window.loadRecentPrints = async () => {
     if (!currentUser) return;
-    const container = document.getElementById('recent-photos');
-    if (!container) return;
-    
-    const localPrints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
     
     const renderPrints = (prints) => {
+        const container = document.getElementById('recent-photos');
+        if (!container) return;
+        
         if (!prints || prints.length === 0) {
-            container.style.cssText = '';
-            container.innerHTML = '<p class="text-muted" style="font-size: 0.85rem;">Your gallery is empty. Head to the Studio!</p>';
+            container.innerHTML = `<p class="text-muted" style="font-size: 0.85rem;">Your gallery is empty. Head to the Studio! 📸</p>`;
             return;
         }
-        
-        container.style.border = 'none';
-        container.style.background = 'transparent';
-        container.style.padding = '0';
+
         container.style.minHeight = 'unset';
+        container.style.background = 'transparent';
+        container.style.border = 'none';
+        container.style.padding = '0';
         
         container.innerHTML = `
             <div style="display: flex; gap: 1rem; overflow-x: auto; width: 100%; padding: 0.5rem 0;" class="no-scrollbar">
@@ -972,6 +970,13 @@ window.loadRecentPrints = async () => {
         `;
         refreshIcons();
     };
+
+    const localPrints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
+    
+    const container = document.getElementById('recent-photos');
+    if (container && localPrints.length === 0) {
+        container.innerHTML = `<div class="loader-small"></div><p class="text-muted" style="font-size: 0.75rem; margin-top: 10px;">Syncing with Cloud...</p>`;
+    }
 
     renderPrints(localPrints);
 
