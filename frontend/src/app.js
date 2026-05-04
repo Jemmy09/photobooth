@@ -1,5 +1,5 @@
 /** 
- * Lumina Engine v1.5.5 STABLE
+ * Lumina Engine v1.5.6 STABLE
  * Professional Filter System & Pro Controls
  */
 import './style.css';
@@ -42,7 +42,7 @@ const LENSES = {
     beauty: { name: 'Beauty', filter: 'blur(0.4px) brightness(1.1) contrast(1.05) saturate(1.1)', icon: 'heart' },
     golden: { name: 'Golden', filter: 'sepia(0.4) saturate(1.8) brightness(1.1) hue-rotate(-10deg)', icon: 'sparkles' },
     silver: { name: 'Silver', filter: 'grayscale(1) brightness(1.1) contrast(1.3) sepia(0.1)', icon: 'aperture' },
-    portrait: { name: 'Portrait', filter: 'blur(0.6px) brightness(1.1) saturate(1.3) contrast(1.1) sepia(0.1)', icon: 'camera' },
+    portrait: { name: 'Portrait', filter: 'brightness(1.05) saturate(1.2) contrast(1.1)', icon: 'camera', bokeh: true },
     ocean: { name: 'Ocean', filter: 'hue-rotate(180deg) saturate(1.2) brightness(1.1) contrast(1.1)', icon: 'droplet' }
 };
 let mediaStream = null;
@@ -60,7 +60,7 @@ function init() {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            console.log("🚀 Lumina System — v1.5.5 STABLE — Authenticated & Active");
+            console.log("🚀 Lumina System — v1.5.6 STABLE — Authenticated & Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             
@@ -308,8 +308,18 @@ window.toggleLensBar = () => {
 window.applyLens = (lensKey) => {
     currentLens = lensKey;
     const video = document.getElementById('video');
+    const bokeh = document.getElementById('bokeh-overlay');
+    
     if (video) {
         video.style.filter = LENSES[lensKey].filter;
+    }
+    
+    if (bokeh) {
+        if (LENSES[lensKey].bokeh) {
+            bokeh.classList.remove('hidden');
+        } else {
+            bokeh.classList.add('hidden');
+        }
     }
     
     // Highlight active lens in UI
@@ -360,16 +370,49 @@ async function captureImage() {
     canvas.width = video.videoWidth;
     canvas.height = video.videoHeight;
     
-    // Apply Lens to Canvas
-    ctx.filter = LENSES[currentLens].filter;
+    const lens = LENSES[currentLens];
     
-    // Flip horizontal for natural look only for front camera
-    if (currentFacingMode === 'user') {
-        ctx.translate(canvas.width, 0);
-        ctx.scale(-1, 1);
+    // Clear canvas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // If Bokeh is active, we layer blur + sharp
+    if (lens.bokeh) {
+        // 1. Draw Blurred Layer
+        ctx.filter = `blur(15px) ${lens.filter}`;
+        if (currentFacingMode === 'user') {
+            ctx.save();
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx.restore();
+        } else {
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        }
+        
+        // 2. Draw Sharp Center Layer
+        ctx.save();
+        ctx.beginPath();
+        // Create a large elliptical clip in the center
+        ctx.ellipse(canvas.width / 2, canvas.height / 2, canvas.width / 2.5, canvas.height / 1.8, 0, 0, Math.PI * 2);
+        ctx.clip();
+        
+        ctx.filter = lens.filter;
+        if (currentFacingMode === 'user') {
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+        }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.restore();
+    } else {
+        // Standard Lens logic
+        ctx.filter = lens.filter;
+        if (currentFacingMode === 'user') {
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+        }
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     }
     
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL('image/png');
 }
 
