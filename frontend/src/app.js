@@ -1,5 +1,5 @@
 /** 
- * Lumina Engine v1.5.8 STABLE
+ * Lumina Engine v1.5.9 STABLE
  * Professional Filter System & Pro Controls
  */
 import './style.css';
@@ -44,7 +44,7 @@ const LENSES = {
     silver: { name: 'Silver', filter: 'grayscale(1) brightness(1.1) contrast(1.3) sepia(0.1)', icon: 'aperture' },
     portrait: { name: 'Portrait', filter: 'brightness(1.05) saturate(1.2) contrast(1.1)', icon: 'camera', bokeh: true },
     ocean: { name: 'Ocean', filter: 'hue-rotate(180deg) saturate(1.2) brightness(1.1) contrast(1.1)', icon: 'droplet' },
-    puppy: { name: 'Puppy', filter: 'brightness(1.05) saturate(1.1)', icon: 'dog', puppy: true }
+    puppy: { name: 'Puppy', filter: 'blur(0.3px) brightness(1.1) saturate(1.2) contrast(1.05)', icon: 'dog', puppy: true }
 };
 let mediaStream = null;
 let photos = [];
@@ -61,7 +61,7 @@ function init() {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            console.log("🚀 Lumina System — v1.5.8 STABLE — Authenticated & Active");
+            console.log("🚀 Lumina System — v1.5.9 STABLE — Authenticated & Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             
@@ -309,8 +309,8 @@ window.toggleLensBar = () => {
 window.applyLens = (lensKey) => {
     currentLens = lensKey;
     const video = document.getElementById('video');
-    const bokeh = document.getElementById('bokeh-overlay');
-    const puppy = document.getElementById('puppy-overlay');
+    const ears = document.getElementById('puppy-ears');
+    const muzzle = document.getElementById('puppy-muzzle');
     
     if (video) {
         video.style.filter = LENSES[lensKey].filter;
@@ -324,11 +324,13 @@ window.applyLens = (lensKey) => {
         }
     }
 
-    if (puppy) {
+    if (ears && muzzle) {
         if (LENSES[lensKey].puppy) {
-            puppy.classList.remove('hidden');
+            ears.classList.remove('hidden');
+            muzzle.classList.remove('hidden');
         } else {
-            puppy.classList.add('hidden');
+            ears.classList.add('hidden');
+            muzzle.classList.add('hidden');
         }
     }
     
@@ -423,22 +425,32 @@ async function captureImage() {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     }
     
-    // If Puppy is active, overlay the dog filter image
+    // If Puppy is active, overlay the dog filter images
     if (lens.puppy) {
-        const puppyImg = document.getElementById('puppy-overlay');
-        if (puppyImg && puppyImg.complete) {
-            ctx.save();
-            ctx.setTransform(1, 0, 0, 1, 0, 0); 
-            ctx.globalCompositeOperation = 'screen';
-            
-            const pW = canvas.width * 0.9;
-            const pH = canvas.height * 0.9;
-            const pX = (canvas.width - pW) / 2;
-            const pY = ((canvas.height - pH) / 2) - (canvas.height * 0.12);
-            
-            ctx.drawImage(puppyImg, pX, pY, pW, pH);
-            ctx.restore();
+        const earsImg = document.getElementById('puppy-ears');
+        const muzzleImg = document.getElementById('puppy-muzzle');
+        
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0); 
+        ctx.globalCompositeOperation = 'screen';
+        
+        if (earsImg && earsImg.complete) {
+            const eW = canvas.width * 1.1;
+            const eH = (earsImg.naturalHeight / earsImg.naturalWidth) * eW;
+            const eX = (canvas.width - eW) / 2;
+            const eY = canvas.height * 0.05;
+            ctx.drawImage(earsImg, eX, eY, eW, eH);
         }
+        
+        if (muzzleImg && muzzleImg.complete) {
+            const mW = canvas.width * 0.75;
+            const mH = (muzzleImg.naturalHeight / muzzleImg.naturalWidth) * mW;
+            const mX = (canvas.width - mW) / 2;
+            const mY = canvas.height * 0.48;
+            ctx.drawImage(muzzleImg, mX, mY, mW, mH);
+        }
+        
+        ctx.restore();
     }
     
     return canvas.toDataURL('image/png');
