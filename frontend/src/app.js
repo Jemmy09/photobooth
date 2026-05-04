@@ -1286,34 +1286,6 @@ window.downloadPrintLocally = async (index) => {
     if (prints[index]) window.downloadPrint(prints[index]);
 };
 
-window.showPrint = (index) => {
-    const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
-    const printUrl = prints[index];
-    if (printUrl) {
-        const modal = document.createElement('div');
-        modal.style.position = 'fixed';
-        modal.style.inset = '0';
-        modal.style.background = 'rgba(15, 23, 42, 0.95)';
-        modal.style.backdropFilter = 'blur(10px)';
-        modal.style.zIndex = '3000';
-        modal.style.display = 'flex';
-        modal.style.alignItems = 'center';
-        modal.style.justifyContent = 'center';
-        modal.style.padding = '2rem';
-        modal.innerHTML = `
-            <div class="fade-in" style="position: relative; max-width: 100%; max-height: 100%; display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
-                <img src="${printUrl}" style="max-width: 100%; max-height: 80vh; border: 12px solid white; border-radius: 4px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
-                <div style="display: flex; gap: 1rem;">
-                    <button onclick="window.downloadPrintLocally(${index})" class="btn btn-primary" style="padding: 0.75rem 2rem; border-radius: 30px;">Download</button>
-                    <button onclick="window.deletePrint(${index})" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px; background: rgba(255, 69, 0, 0.1); color: var(--accent); border: 1px solid rgba(255, 69, 0, 0.3);">Delete</button>
-                    <button onclick="this.closest('[style*=fixed]').remove()" class="btn btn-secondary" style="padding: 0.75rem 2rem; border-radius: 30px;">Close</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(modal);
-        refreshIcons();
-    }
-};
 
 /** Unified print viewer — used by gallery cards (accepts index) */
 window.openPrintModal = (index) => {
