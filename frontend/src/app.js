@@ -1,5 +1,5 @@
 /** 
- * Lumina Engine v1.5.4 STABLE
+ * Lumina Engine v1.5.5 STABLE
  * Professional Filter System & Pro Controls
  */
 import './style.css';
@@ -41,7 +41,9 @@ const LENSES = {
     bronzed: { name: 'Bronzed', filter: 'sepia(0.6) contrast(1.1) brightness(1.1) saturate(1.2)', icon: 'award' },
     beauty: { name: 'Beauty', filter: 'blur(0.4px) brightness(1.1) contrast(1.05) saturate(1.1)', icon: 'heart' },
     golden: { name: 'Golden', filter: 'sepia(0.4) saturate(1.8) brightness(1.1) hue-rotate(-10deg)', icon: 'sparkles' },
-    silver: { name: 'Silver', filter: 'grayscale(1) brightness(1.1) contrast(1.3) sepia(0.1)', icon: 'aperture' }
+    silver: { name: 'Silver', filter: 'grayscale(1) brightness(1.1) contrast(1.3) sepia(0.1)', icon: 'aperture' },
+    portrait: { name: 'Portrait', filter: 'blur(0.6px) brightness(1.1) saturate(1.3) contrast(1.1) sepia(0.1)', icon: 'camera' },
+    ocean: { name: 'Ocean', filter: 'hue-rotate(180deg) saturate(1.2) brightness(1.1) contrast(1.1)', icon: 'droplet' }
 };
 let mediaStream = null;
 let photos = [];
@@ -58,7 +60,7 @@ function init() {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            console.log("🚀 Lumina System — v1.5.4 STABLE — Authenticated & Active");
+            console.log("🚀 Lumina System — v1.5.5 STABLE — Authenticated & Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             
