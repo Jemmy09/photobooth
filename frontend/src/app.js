@@ -581,10 +581,27 @@ function finalizePrint(canvas, frameColor) {
     }
     
     savePrintToDatabase(dataUrl);
-    showToast("Print successfully generated! ✨", "success");
+    showToast("Print ready! ✨", "success");
+}
+
+/** Save a print to localStorage immediately (max 3 kept) */
+function savePrintLocally(dataUrl) {
+    try {
+        const key = 'recent_prints';
+        const existing = JSON.parse(localStorage.getItem(key) || '[]');
+        // Prepend newest, keep max 3
+        const updated = [dataUrl, ...existing].slice(0, 3);
+        localStorage.setItem(key, JSON.stringify(updated));
+    } catch (e) {
+        console.warn('localStorage save failed (quota?):', e);
+    }
 }
 
 async function savePrintToDatabase(dataUrl) {
+    // 1. Save locally first — this is the source of truth for the gallery
+    savePrintLocally(dataUrl);
+    
+    // 2. Silently try to sync with backend (non-blocking)
     if (!currentUser) return;
     try {
         const token = await currentUser.getIdToken();
@@ -593,9 +610,9 @@ async function savePrintToDatabase(dataUrl) {
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ imageData: dataUrl })
         });
-        if (window.loadRecentPrints) window.loadRecentPrints();
     } catch(e) {
-        console.error("Failed to save to DB", e);
+        // Backend sync is best-effort — local save already succeeded
+        console.warn('Backend sync failed (local save is still good):', e);
     }
 }
 
@@ -622,37 +639,57 @@ window.loadRecentPrints = async () => {
     const container = document.getElementById('recent-photos');
     if (!container) return;
     
-    try {
-        const token = await currentUser.getIdToken();
-        const res = await fetch(`${API_BASE_URL}/api/prints/recent`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        const prints = await res.json();
-        
+    // --- Step 1: Show localStorage prints immediately (no network needed) ---
+    const localPrints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
+    
+    const renderPrints = (prints) => {
         if (!prints || prints.length === 0) {
+            container.style.cssText = '';
             container.innerHTML = '<p class="text-muted" style="font-size: 0.85rem;">Your gallery is empty. Head to the Studio!</p>';
             return;
         }
-        
         container.style.border = 'none';
         container.style.background = 'transparent';
         container.style.padding = '0';
+        container.style.minHeight = 'unset';
         container.innerHTML = `
-            <div style="display: flex; gap: 1rem; overflow-x: auto; width: 100%; height: 100%; padding: 0.5rem 0;" class="no-scrollbar">
-                ${prints.map((p, index) => `
-                    <div style="position: relative; flex: 0 0 auto; height: 230px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow);">
-                        <img src="${p}" style="height: 100%; object-fit: contain; cursor: pointer;" onclick="window.downloadPrint('${p}')">
+            <div style="display: flex; gap: 1rem; overflow-x: auto; width: 100%; padding: 0.5rem 0;" class="no-scrollbar">
+                ${prints.map((p) => `
+                    <div style="position: relative; flex: 0 0 auto; height: 230px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); cursor: pointer;" onclick="window.openPrintModal('${p}')">
+                        <img src="${p}" style="height: 100%; object-fit: contain;" loading="lazy">
                         <div style="position: absolute; bottom: 8px; right: 8px;">
-                            <button onclick="window.downloadPrint('${p}')" class="btn-icon" style="background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(4px); border: 1px solid rgba(255,255,255,0.2); width: 36px; height: 36px;"><i data-lucide="download" style="width: 16px; height: 16px;"></i></button>
+                            <button onclick="event.stopPropagation(); window.downloadPrint('${p}')" class="btn-icon" style="background: rgba(13,17,23,0.85); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); width: 36px; height: 36px;">
+                                <i data-lucide="download" style="width: 16px; height: 16px;"></i>
+                            </button>
                         </div>
                     </div>
                 `).join('')}
             </div>
         `;
         refreshIcons();
+    };
+
+    // Render local prints right away
+    renderPrints(localPrints);
+
+    // --- Step 2: Try backend silently — update if it returns more/fresher data ---
+    try {
+        const token = await currentUser.getIdToken();
+        const res = await fetch(`${API_BASE_URL}/api/prints/recent`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!res.ok) return; // Backend down — local render already done
+        const remotePrints = await res.json();
+        if (remotePrints && remotePrints.length > 0) {
+            // Merge: remote prints take precedence, keep local as fallback
+            const merged = [...new Set([...remotePrints, ...localPrints])].slice(0, 3);
+            // Update localStorage with merged set
+            localStorage.setItem('recent_prints', JSON.stringify(merged));
+            renderPrints(merged);
+        }
     } catch (e) {
-        console.error(e);
-        container.innerHTML = '<p class="text-muted" style="font-size: 0.85rem;">Failed to load gallery.</p>';
+        // Backend unreachable — local render is already showing, no error message needed
+        console.warn('Gallery backend sync failed, showing local prints.');
     }
 };
 
@@ -1240,25 +1277,8 @@ function updateUserUI() {
         userName.innerText = formattedName.charAt(0).toUpperCase() + formattedName.slice(1).toLowerCase();
     }
     
-    const recentPhotos = document.getElementById('recent-photos');
-    const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
-    
-    if (recentPhotos) {
-        if (prints.length > 0) {
-            recentPhotos.style.display = 'flex';
-            recentPhotos.style.gap = '0.75rem';
-            recentPhotos.style.overflowX = 'auto';
-            recentPhotos.style.paddingBottom = '0.5rem';
-            
-            recentPhotos.innerHTML = prints.map((p, i) => `
-                <div class="fade-in" style="flex: 0 0 auto; width: 100px; height: 130px; border-radius: 12px; overflow: hidden; border: 2px solid rgba(255,255,255,0.1); cursor: pointer; transition: transform 0.2s; box-shadow: var(--shadow-sm);" onclick="showPrint(${i})">
-                    <img src="${p}" style="width: 100%; height: 100%; object-fit: cover;">
-                </div>
-            `).join('');
-        } else {
-            recentPhotos.innerHTML = `<p class="text-muted" style="font-size: 0.85rem;">Your gallery is empty. Head to the Studio!</p>`;
-        }
-    }
+    // Always delegate gallery rendering to loadRecentPrints (single source of truth)
+    if (window.loadRecentPrints) window.loadRecentPrints();
 }
 
 window.showPrint = (index) => {
@@ -1287,6 +1307,25 @@ window.showPrint = (index) => {
         document.body.appendChild(modal);
         refreshIcons();
     }
+};
+
+/** Unified print viewer — used by gallery cards (accepts URL directly) */
+window.openPrintModal = (printUrl) => {
+    if (!printUrl) return;
+    const modal = document.createElement('div');
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(13,17,23,0.95);backdrop-filter:blur(16px);z-index:3000;display:flex;align-items:center;justify-content:center;padding:2rem;cursor:pointer;';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+    modal.innerHTML = `
+        <div class="fade-in" style="position:relative;max-width:100%;max-height:100%;display:flex;flex-direction:column;align-items:center;gap:1.5rem;">
+            <img src="${printUrl}" style="max-width:100%;max-height:80vh;border:12px solid white;border-radius:4px;box-shadow:0 25px 60px rgba(0,0,0,0.6);" loading="lazy">
+            <div style="display:flex;gap:1rem;">
+                <button onclick="window.downloadPrint('${printUrl}')" class="btn btn-primary" style="padding:0.75rem 2rem;border-radius:30px;"><i data-lucide="download" style="width:18px;"></i> Save</button>
+                <button onclick="this.closest('[style*=fixed]').remove()" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px;">Close</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    refreshIcons();
 };
 
 
