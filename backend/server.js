@@ -582,8 +582,11 @@ app.get('/api/prints/recent', authenticateUser, async (req, res) => {
       [req.user.uid]
     );
 
-    // Return array of image data URLs
-    res.json(result.rows.map(r => r.image_data));
+    // Return objects with url and timestamp for perfect cross-device sync
+    res.json(result.rows.map(r => ({
+      url: r.image_data,
+      timestamp: new Date(r.created_at).getTime()
+    })));
   } catch (err) {
     console.error('Fetch prints error:', err.message);
     res.status(500).json({ error: err.message });
