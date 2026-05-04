@@ -654,11 +654,11 @@ window.loadRecentPrints = async () => {
         container.style.minHeight = 'unset';
         container.innerHTML = `
             <div style="display: flex; gap: 1rem; overflow-x: auto; width: 100%; padding: 0.5rem 0;" class="no-scrollbar">
-                ${prints.map((p) => `
-                    <div style="position: relative; flex: 0 0 auto; height: 230px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); cursor: pointer;" onclick="window.openPrintModal('${p}')">
+                ${prints.map((p, index) => `
+                    <div style="position: relative; flex: 0 0 auto; height: 230px; border-radius: 12px; overflow: hidden; box-shadow: var(--shadow); cursor: pointer;" onclick="window.openPrintModal(${index})">
                         <img src="${p}" style="height: 100%; object-fit: contain;" loading="lazy">
                         <div style="position: absolute; bottom: 8px; right: 8px;">
-                            <button onclick="event.stopPropagation(); window.downloadPrint('${p}')" class="btn-icon" style="background: rgba(13,17,23,0.85); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); width: 36px; height: 36px;">
+                            <button onclick="event.stopPropagation(); window.downloadPrintLocally(${index})" class="btn-icon" style="background: rgba(13,17,23,0.85); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,0.15); width: 36px; height: 36px;">
                                 <i data-lucide="download" style="width: 16px; height: 16px;"></i>
                             </button>
                         </div>
@@ -1281,6 +1281,11 @@ function updateUserUI() {
     if (window.loadRecentPrints) window.loadRecentPrints();
 }
 
+window.downloadPrintLocally = async (index) => {
+    const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
+    if (prints[index]) window.downloadPrint(prints[index]);
+};
+
 window.showPrint = (index) => {
     const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
     const printUrl = prints[index];
@@ -1299,9 +1304,9 @@ window.showPrint = (index) => {
             <div class="fade-in" style="position: relative; max-width: 100%; max-height: 100%; display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
                 <img src="${printUrl}" style="max-width: 100%; max-height: 80vh; border: 12px solid white; border-radius: 4px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
                 <div style="display: flex; gap: 1rem;">
-                    <a href="${printUrl}" download="lumina-capture.png" class="btn btn-primary" style="padding: 0.75rem 2rem; border-radius: 30px;">Download</a>
-                    <button onclick="window.deletePrint('${printUrl}')" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px; background: rgba(255, 69, 0, 0.1); color: var(--accent); border: 1px solid rgba(255, 69, 0, 0.3);">Delete</button>
-                    <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-secondary" style="padding: 0.75rem 2rem; border-radius: 30px;">Close</button>
+                    <button onclick="window.downloadPrintLocally(${index})" class="btn btn-primary" style="padding: 0.75rem 2rem; border-radius: 30px;">Download</button>
+                    <button onclick="window.deletePrint(${index})" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px; background: rgba(255, 69, 0, 0.1); color: var(--accent); border: 1px solid rgba(255, 69, 0, 0.3);">Delete</button>
+                    <button onclick="this.closest('[style*=fixed]').remove()" class="btn btn-secondary" style="padding: 0.75rem 2rem; border-radius: 30px;">Close</button>
                 </div>
             </div>
         `;
@@ -1310,9 +1315,13 @@ window.showPrint = (index) => {
     }
 };
 
-/** Unified print viewer — used by gallery cards (accepts URL directly) */
-window.openPrintModal = (printUrl) => {
+/** Unified print viewer — used by gallery cards (accepts index) */
+window.openPrintModal = (index) => {
+    if (index === undefined || index === null) return;
+    const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
+    const printUrl = prints[index];
     if (!printUrl) return;
+
     const modal = document.createElement('div');
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(13,17,23,0.95);backdrop-filter:blur(16px);z-index:3000;display:flex;align-items:center;justify-content:center;padding:2rem;cursor:pointer;';
     modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
@@ -1320,8 +1329,8 @@ window.openPrintModal = (printUrl) => {
         <div class="fade-in" style="position:relative;max-width:100%;max-height:100%;display:flex;flex-direction:column;align-items:center;gap:1.5rem;">
             <img src="${printUrl}" style="max-width:100%;max-height:80vh;border:12px solid white;border-radius:4px;box-shadow:0 25px 60px rgba(0,0,0,0.6);" loading="lazy">
             <div style="display:flex;gap:1rem;">
-                <button onclick="window.downloadPrint('${printUrl}')" class="btn btn-primary" style="padding:0.75rem 2rem;border-radius:30px;"><i data-lucide="download" style="width:18px;"></i> Save</button>
-                <button onclick="window.deletePrint('${printUrl}')" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px; background: rgba(255, 69, 0, 0.1); color: var(--accent); border: 1px solid rgba(255, 69, 0, 0.3);"><i data-lucide="trash-2" style="width:18px;"></i> Delete</button>
+                <button onclick="window.downloadPrintLocally(${index})" class="btn btn-primary" style="padding:0.75rem 2rem;border-radius:30px;"><i data-lucide="download" style="width:18px;"></i> Save</button>
+                <button onclick="window.deletePrint(${index})" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px; background: rgba(255, 69, 0, 0.1); color: var(--accent); border: 1px solid rgba(255, 69, 0, 0.3);"><i data-lucide="trash-2" style="width:18px;"></i> Delete</button>
                 <button onclick="this.closest('[style*=fixed]').remove()" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px;">Close</button>
             </div>
         </div>
@@ -1667,7 +1676,11 @@ window.closeModal = (id) => {
     if (modal) modal.classList.add('hidden');
 };
 
-window.deletePrint = async (printUrl) => {
+window.deletePrint = async (index) => {
+    const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
+    const printUrl = prints[index];
+    if (!printUrl) return;
+    
     if (!confirm("Are you sure you want to delete this memory?")) return;
     try {
         const token = await currentUser.getIdToken();
@@ -1679,11 +1692,13 @@ window.deletePrint = async (printUrl) => {
         if (res.ok) {
             showToast("Print deleted successfully.", "success");
             
+            // Delete from local cache
+            prints.splice(index, 1);
+            localStorage.setItem('recent_prints', JSON.stringify(prints));
+            
             // Close any open modals
             const openModals = document.querySelectorAll('[style*=fixed]');
-            openModals.forEach(m => {
-                if (m.innerHTML.includes(printUrl)) m.remove();
-            });
+            openModals.forEach(m => m.remove());
 
             // Refresh prints
             await window.loadRecentPrints();
