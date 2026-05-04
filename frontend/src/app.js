@@ -1570,11 +1570,13 @@ function updateUserUI() {
 
 window.downloadPrintLocally = async (index) => {
     const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
-    const data = prints[index];
-    if (!data) return;
+    const item = prints[index];
+    if (!item) return;
+    
+    const url = typeof item === 'string' ? item : item.url;
     
     const link = document.createElement('a');
-    link.href = data;
+    link.href = url;
     link.download = `lumina-masterpiece-${Date.now()}.png`;
     link.click();
 };
@@ -1584,22 +1586,20 @@ window.deletePhoto = async (index) => {
 
     try {
         const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
-        const imageData = prints[index];
+        const target = prints[index];
+        const targetUrl = typeof target === 'string' ? target : target.url;
         
-        // 1. Local Deletion
-        prints.splice(index, 1);
-        localStorage.setItem('recent_prints', JSON.stringify(prints));
+        // 1. Remove from LocalStorage immediately
+        const updated = prints.filter((_, i) => i !== index);
+        localStorage.setItem('recent_prints', JSON.stringify(updated));
         
-        // 2. Cloud Deletion
-        if (currentUser && imageData) {
+        // 2. Sync with Backend
+        if (currentUser) {
             const token = await currentUser.getIdToken();
             await fetch(`${API_BASE_URL}/api/prints/delete`, {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ imageData })
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ imageData: targetUrl })
             });
         }
         
@@ -1621,8 +1621,10 @@ window.deletePhoto = async (index) => {
 window.openPrintModal = (index) => {
     if (index === undefined || index === null) return;
     const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
-    const printUrl = prints[index];
-    if (!printUrl) return;
+    const item = prints[index];
+    if (!item) return;
+
+    const url = typeof item === 'string' ? item : item.url;
 
     const modal = document.createElement('div');
     modal.id = 'print-viewer-modal';
@@ -1630,7 +1632,7 @@ window.openPrintModal = (index) => {
     modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
     modal.innerHTML = `
         <div class="fade-in" style="position:relative;max-width:100%;max-height:100%;display:flex;flex-direction:column;align-items:center;gap:1.5rem;">
-            <img src="${printUrl}" style="max-width:100%;max-height:80vh;border-radius:4px;box-shadow:0 25px 60px rgba(0,0,0,0.6);" loading="lazy">
+            <img src="${url}" style="max-width:100%;max-height:80vh;border-radius:4px;box-shadow:0 25px 60px rgba(0,0,0,0.6);" loading="lazy">
             <div style="display:flex;gap:1rem;">
                 <button onclick="window.downloadPrintLocally(${index})" class="btn btn-primary" style="padding:0.75rem 2rem;border-radius:30px;"><i data-lucide="download" style="width:18px;"></i> Save</button>
                 <button onclick="window.deletePhoto(${index})" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px; background: rgba(255, 69, 0, 0.1); color: var(--accent); border: 1px solid rgba(255, 69, 0, 0.3);"><i data-lucide="trash-2" style="width:18px;"></i> Delete</button>
