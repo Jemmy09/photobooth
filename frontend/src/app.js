@@ -1018,9 +1018,13 @@ window.loadRecentPrints = async () => {
         const syncDot = document.getElementById('sync-dot');
         const syncText = document.getElementById('sync-text');
         if (syncDot) syncDot.style.background = 'var(--secondary)';
-        if (syncText) syncText.innerText = 'Synced with Cloud';
-
         const remotePrints = await res.json();
+        
+        const backendStatus = document.getElementById('backend-status');
+        if (backendStatus) backendStatus.innerText = `Connected to ${API_BASE_URL.replace('https://', '')}`;
+
+        if (syncText) syncText.innerText = `Cloud Active (${remotePrints.length} found)`;
+
         if (remotePrints && remotePrints.length > 0) {
             const normalizedRemote = remotePrints.map(p => {
                 if (typeof p === 'string') return { url: p, timestamp: Date.now() };
