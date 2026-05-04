@@ -79,7 +79,7 @@ function init() {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            console.log("🚀 Lumina System — v1.6.1 STABLE — Authenticated & Active");
+            console.log("🚀 Lumina System — v1.7.3 STABLE — Authenticated & Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             loadModels(); // Initialize Face Recognition Models

@@ -197,7 +197,12 @@
             <div class="glass-card" style="display: flex; flex-direction: column;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                     <h2 style="margin: 0; font-family: 'Outfit';">Recent Masterpiece</h2>
-                    <span style="font-size: 0.75rem; font-weight: 800; color: var(--primary); background: rgba(255, 107, 43, 0.1); padding: 4px 10px; border-radius: 12px;">GALLERY</span>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <button onclick="window.loadRecentPrints()" class="btn-icon" style="background: rgba(255,255,255,0.1); width: 32px; height: 32px; border: 1px solid rgba(255,255,255,0.1); border-radius: 8px;" title="Sync Cloud">
+                            <i data-lucide="refresh-cw" style="width: 14px; height: 14px; color: var(--secondary);"></i>
+                        </button>
+                        <span style="font-size: 0.75rem; font-weight: 800; color: var(--primary); background: rgba(255, 107, 43, 0.1); padding: 4px 10px; border-radius: 12px;">GALLERY</span>
+                    </div>
                 </div>
                 <div id="recent-photos" style="min-height: 250px; display: flex; align-items: center; justify-content: center; border: 2px dashed var(--glass-border); border-radius: 16px; overflow: hidden; background: rgba(0,0,0,0.2);">
                     <p class="text-muted" style="font-size: 0.85rem;">Your gallery is empty. Head to the Studio!</p>
