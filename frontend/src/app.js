@@ -957,9 +957,21 @@ window.loadRecentPrints = async () => {
                     return `
                         <div style="position: relative; flex: 0 0 auto; height: 380px; border-radius: 16px; overflow: hidden; box-shadow: var(--card-shadow); border: 1px solid var(--glass-border); cursor: pointer; transition: transform 0.3s ease; scroll-snap-align: start; background: #000;" onclick="window.openPrintModalFromData('${url}', ${index})" class="gallery-item-hover">
                             <img src="${url}" style="height: 100%; width: auto; display: block;" loading="lazy">
+                            
+                            <!-- Sleek Mini Badge -->
                             <div style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); padding: 4px 8px; border-radius: 8px; font-size: 0.6rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(255,255,255,0.1);">
                                 <div style="width: 5px; height: 5px; border-radius: 50%; background: ${hours < 6 ? 'var(--accent)' : 'var(--secondary)'};"></div>
                                 ${hours}H
+                            </div>
+
+                            <!-- Bottom Action Overlay -->
+                            <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; gap: 8px; opacity: 0.9;">
+                                <button onclick="event.stopPropagation(); window.downloadDirect('${url}')" class="btn-icon" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.2); width: 36px; height: 36px; border-radius: 50%;">
+                                    <i data-lucide="download" style="width: 18px; height: 18px; color: white;"></i>
+                                </button>
+                                <button onclick="event.stopPropagation(); window.deleteDirect('${url}')" class="btn-icon" style="background: rgba(239, 68, 68, 0.2); backdrop-filter: blur(15px); border: 1px solid rgba(239, 68, 68, 0.4); width: 36px; height: 36px; border-radius: 50%;">
+                                    <i data-lucide="trash-2" style="width: 18px; height: 18px; color: #ef4444;"></i>
+                                </button>
                             </div>
                         </div>
                     `;
