@@ -864,9 +864,9 @@ function savePrintLocally(dataUrl) {
     try {
         const key = 'recent_prints';
         const existing = JSON.parse(localStorage.getItem(key) || '[]');
-        // Prepend newest with timestamp, keep max 12 (Safe local storage limit)
+        // Prepend newest with timestamp, keep max 20 (Aligned with Backend)
         const newPrint = { url: dataUrl, timestamp: Date.now() };
-        const updated = [newPrint, ...existing].slice(0, 12);
+        const updated = [newPrint, ...existing].slice(0, 20);
         localStorage.setItem(key, JSON.stringify(updated));
     } catch (e) {
         console.warn('localStorage save failed (quota?):', e);
