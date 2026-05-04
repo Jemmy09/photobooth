@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/lumina_favicon.png" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <title>Lumina</title>
     <!-- Lumina Engine v1.6.1 STABLE -->
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
@@ -102,8 +102,8 @@
                     </defs>
                 </svg>
             </div>
-            <h1 class="gradient-text" style="font-size: 3.5rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.05em; font-family: 'Outfit', sans-serif;">Lumina</h1>
-            <p class="text-muted" style="font-size: 1.1rem; max-width: 320px; margin: 0 auto;">Connect, Capture, and Share your best moments.</p>
+            <h1 class="gradient-text" style="font-size: clamp(2.5rem, 8vw, 3.5rem); font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.05em; font-family: 'Outfit', sans-serif;">Lumina</h1>
+            <p class="text-muted" style="font-size: 1rem; max-width: 90%; margin: 0 auto;">Connect, Capture, and Share your best moments.</p>
         </div>
         
         <div class="auth-card fade-in" style="width: 100%; max-width: 440px; background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(20px); border-radius: 32px; padding: 2.5rem; box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1); position: relative; overflow: hidden;">
@@ -137,7 +137,7 @@
                 <label style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.6rem; letter-spacing: 0.05em;">Password</label>
                 <input type="password" id="login-password" placeholder="Minimum 6 characters" required style="height: 52px; padding: 0 1.25rem;">
               </div>
-              <button type="submit" id="login-submit-btn" class="btn btn-primary" style="width: 100%; height: 56px; border-radius: 16px; font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.75rem; box-shadow: 0 10px 25px -5px rgba(255, 107, 43, 0.4);">
+              <button type="submit" id="login-submit-btn" class="btn btn-primary" style="width: 100%; height: 56px; border-radius: 16px; font-weight: 700; font-size: 1rem; display: flex; align-items: center; justify-content: center; gap: 0.75rem;">
                 <span>Login Account</span>
                 <div class="loader-small hidden"></div>
               </button>
@@ -337,8 +337,8 @@
               </div>
             </div>
             
-            <h2 id="profile-name" class="gradient-text" style="font-size: 2rem; margin-bottom: 0.25rem;">User Name</h2>
-            <p id="profile-email" class="text-muted" style="margin-bottom: 1.5rem;">email@example.com</p>
+            <h2 id="profile-name" class="gradient-text" style="font-size: clamp(1.5rem, 5vw, 2rem); margin-bottom: 0.25rem;">User Name</h2>
+            <p id="profile-email" class="text-muted" style="margin-bottom: 1.5rem; word-break: break-all;">email@example.com</p>
 
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 2rem;">
               <div class="glass-card" style="padding: 1rem; background: rgba(255,255,255,0.02);">

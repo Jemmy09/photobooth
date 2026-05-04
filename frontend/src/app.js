@@ -294,6 +294,7 @@ function updateFaceStatus(status) {
 
 async function startFaceDetection() {
     if (!isModelsLoaded) return;
+
     const video = document.getElementById('video');
     const canvas = document.getElementById('detection-canvas');
     if (!video || !canvas) return;
