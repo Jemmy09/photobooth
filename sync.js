@@ -7,11 +7,11 @@ const rl = readline.createInterface({
 });
 
 console.log("\x1b[36m%s\x1b[0m", "==============================================");
-console.log("\x1b[36m%s\x1b[0m", "       PhotoBooth Monorepo Sync Tool");
+console.log("\x1b[36m%s\x1b[0m", "       Lumina Monorepo Sync Tool");
 console.log("\x1b[36m%s\x1b[0m", "==============================================");
 
-rl.question('Enter commit message (default: "Update PhotoBooth project"): ', (message) => {
-    const commitMessage = message || "Update PhotoBooth project";
+rl.question('Enter commit message (default: "Update Lumina project"): ', (message) => {
+    const commitMessage = message || "Update Lumina project";
 
     try {
         console.log("\n[1/3] \x1b[33mStaging changes...\x1b[0m");

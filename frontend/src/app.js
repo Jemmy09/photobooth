@@ -623,7 +623,7 @@ window.downloadPrint = async (url) => {
         const objectUrl = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = objectUrl;
-        a.download = 'photobooth-print.png';
+        a.download = 'lumina-print.png';
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -696,7 +696,7 @@ window.loadRecentPrints = async () => {
 async function sharePrint(dataUrl) {
     try {
         const blob = await (await fetch(dataUrl)).blob();
-        const file = new File([blob], 'photobooth.png', { type: 'image/png' });
+        const file = new File([blob], 'lumina.png', { type: 'image/png' });
         if (navigator.share) {
             await navigator.share({
                 files: [file],
@@ -785,7 +785,7 @@ function showBoothInvite(n) {
     toast.style.right = '1rem';
     toast.style.zIndex = '2000';
     toast.innerHTML = `
-        <p class="mb-1"><strong>${n.sender_name}</strong> invited you to a PhotoBooth!</p>
+        <p class="mb-1"><strong>${n.sender_name}</strong> invited you to the Studio!</p>
         <div class="flex-center" style="gap: 0.5rem;">
             <button onclick="respondInvite(${data.sessionId}, 'accept', this)" class="btn btn-primary" style="padding: 0.4rem 1rem;">Accept</button>
             <button onclick="this.parentElement.parentElement.remove()" class="btn btn-secondary" style="padding: 0.4rem 1rem;">Decline</button>
@@ -1299,7 +1299,7 @@ window.showPrint = (index) => {
             <div class="fade-in" style="position: relative; max-width: 100%; max-height: 100%; display: flex; flex-direction: column; align-items: center; gap: 1.5rem;">
                 <img src="${printUrl}" style="max-width: 100%; max-height: 80vh; border: 12px solid white; border-radius: 4px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);">
                 <div style="display: flex; gap: 1rem;">
-                    <a href="${printUrl}" download="photobooth-capture.png" class="btn btn-primary" style="padding: 0.75rem 2rem; border-radius: 30px;">Download</a>
+                    <a href="${printUrl}" download="lumina-capture.png" class="btn btn-primary" style="padding: 0.75rem 2rem; border-radius: 30px;">Download</a>
                     <button onclick="this.parentElement.parentElement.parentElement.remove()" class="btn btn-secondary" style="padding: 0.75rem 2rem; border-radius: 30px;">Close</button>
                 </div>
             </div>

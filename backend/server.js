@@ -17,7 +17,7 @@ const pool = new Pool({
 
 // --- Database Schema Initializer ---
 (async () => {
-  console.log("🛠️  INITIATING PHOTOBOOTH DATABASE SETUP...");
+  console.log("🛠️  INITIATING LUMINA DATABASE SETUP...");
   try {
     // User Profiles
     await pool.query(`
