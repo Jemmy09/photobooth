@@ -6,7 +6,23 @@ import './style.css';
 import firebase from 'firebase/compat/app';
 import 'firebase/compat/auth';
 
-// --- Configuration ---
+// --- Global Configuration ---
+const FRAME_CONFIG = {
+    white: '#ffffff',
+    black: '#0f172a',
+    pink: '#fce7f3',
+    gold: '#fbbf24',
+    heart: '#ff85a1',
+    film: '#1a1a1a',
+    birthday: '#ff9ff3',
+    mlbb: '#1e3799',
+    halloween: '#e67e22',
+    christmas: '#27ae60',
+    valentines: '#c0392b',
+    un: '#2980b9',
+    insideout: '#ffffff'
+};
+
 const firebaseConfig = {
     apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyBGrIB0_NxfaQfvajUG44jm3V7-EZ62Wqs",
     authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "turn-45eea.firebaseapp.com",
@@ -27,12 +43,12 @@ const provider = new firebase.auth.GoogleAuthProvider();
 
 // App State
 let currentUser = null;
-let currentView = 'dashboard';
+let detectionInterval = null;
 let isCameraActive = false;
-let currentLens = 'none';
+let currentLens = 'normal';
+let currentView = 'dashboard';
 let currentFacingMode = 'user';
 let isModelsLoaded = false;
-let detectionInterval = null;
 let lastDetectedFace = null; // Store for Smart Bokeh
 
 const LENSES = {
@@ -593,27 +609,10 @@ window.handleCapture = async () => {
     updateCaptureIndicator(0); // Reset
     
     const mode = document.getElementById('booth-mode').value;
-    const frameColor = document.getElementById('frame-color').value;
+    const frameStyle = document.getElementById('frame-color').value;
     
-    // Convert named colors to hex for canvas
-    const colorMap = {
-        white: '#ffffff',
-        black: '#0f172a',
-        pink: '#fce7f3',
-        gold: '#fbbf24',
-        heart: '#ff85a1',
-        film: '#1a1a1a',
-        birthday: '#ff9ff3',
-        mlbb: '#1e3799',
-        halloween: '#e67e22',
-        christmas: '#27ae60',
-        valentines: '#c0392b',
-        un: '#2980b9',
-        insideout: '#ffffff' // Handled by pattern
-    };
-    
-    generatePrint(shots, mode, colorMap[frameColor] || '#ffffff');
-}
+    generatePrint(shots, mode, frameStyle);
+};
 
 async function startCaptureSequence() {
     const shutter = document.getElementById('shutter-btn');
@@ -761,7 +760,7 @@ function generatePrint(shots, mode, frameColor) {
         ctx.lineWidth = 15;
         ctx.strokeRect(7, 7, canvas.width - 14, canvas.height - 14);
     } else {
-        ctx.fillStyle = colorMap[frameColor] || '#ffffff';
+        ctx.fillStyle = FRAME_CONFIG[frameColor] || '#ffffff';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     
