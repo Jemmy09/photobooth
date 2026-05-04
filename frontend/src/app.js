@@ -808,6 +808,26 @@ function generatePrint(shots, mode, frameColor) {
         ctx.fillText('UNITED NATIONS 🌍', canvas.width / 2, canvas.height - 20);
     }
 
+    // Helper for non-stretched drawing (Object-fit: Cover style)
+    const drawCover = (image, x, y, w, h) => {
+        const imgRatio = image.width / image.height;
+        const targetRatio = w / h;
+        let sx, sy, sw, sh;
+        
+        if (imgRatio > targetRatio) {
+            sh = image.height;
+            sw = sh * targetRatio;
+            sx = (image.width - sw) / 2;
+            sy = 0;
+        } else {
+            sw = image.width;
+            sh = sw / targetRatio;
+            sx = 0;
+            sy = (image.height - sh) / 2;
+        }
+        ctx.drawImage(image, sx, sy, sw, sh, x, y, w, h);
+    };
+
     // 3. Draw Shots
     let loaded = 0;
     shots.forEach((p, i) => {
@@ -815,14 +835,14 @@ function generatePrint(shots, mode, frameColor) {
         img.src = p;
         img.onload = () => {
             if (mode === 'strip') {
-                ctx.drawImage(img, 20, 20 + (i * 290), 360, 270);
+                drawCover(img, 20, 20 + (i * 290), 360, 270);
             } else if (mode === 'horizontal') {
-                ctx.drawImage(img, 20 + (i * 290), 20, 270, 360);
+                drawCover(img, 20 + (i * 290), 20, 270, 360);
             } else {
                 const cols = 2;
                 const x = (i % cols) * 390 + 10;
                 const y = Math.floor(i / cols) * 290 + 10;
-                ctx.drawImage(img, x, y, 380, 280);
+                drawCover(img, x, y, 380, 280);
             }
             loaded++;
             if (loaded === 4) finalizePrint(canvas, frameColor);
