@@ -901,11 +901,16 @@ async function savePrintToDatabase(dataUrl, isAlreadyLocal = false) {
         
         if (response.ok) {
             console.log("☁️ Masterpiece synced to Aiven Cloud");
+            showToast("Cloud backup secured! ☁️", "success");
             // Optional: Re-fetch to get the official timestamp from DB
             if (window.loadRecentPrints) window.loadRecentPrints();
+        } else {
+            console.warn("Cloud sync rejected by server:", response.status);
+            showToast("Saved locally, but Cloud sync failed.", "warning");
         }
     } catch(e) {
         console.warn('Cloud sync deferred (offline or server sleeping):', e);
+        showToast("Offline: Cloud backup pending.", "warning");
     }
 }
 
@@ -935,7 +940,15 @@ window.loadRecentPrints = async () => {
         if (!container) return;
         
         if (!prints || prints.length === 0) {
-            container.innerHTML = `<p class="text-muted" style="font-size: 0.85rem;">Your gallery is empty. Head to the Studio! 📸</p>`;
+            container.innerHTML = `
+                <div id="recent-photos" style="min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed var(--glass-border); border-radius: 16px; overflow: hidden; background: rgba(0,0,0,0.2); gap: 1rem;">
+                    <div id="sync-status" class="text-muted" style="font-size: 0.7rem; position: absolute; top: 1rem; left: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <span id="sync-dot" style="width: 6px; height: 6px; border-radius: 50%; background: var(--secondary);"></span>
+                        <span id="sync-text">Cloud Ready</span>
+                    </div>
+                    <p class="text-muted" style="font-size: 0.85rem; margin: 0;">Your gallery is empty. Head to the Studio! 📸</p>
+                    <button onclick="window.loadRecentPrints()" class="btn btn-secondary" style="font-size: 0.75rem; padding: 0.5rem 1rem;">Force Cloud Fetch</button>
+                </div>`;
             return;
         }
 
@@ -1002,7 +1015,11 @@ window.loadRecentPrints = async () => {
         const res = await fetch(`${API_BASE_URL}/api/prints/recent`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res.ok) return;
+        const syncDot = document.getElementById('sync-dot');
+        const syncText = document.getElementById('sync-text');
+        if (syncDot) syncDot.style.background = 'var(--secondary)';
+        if (syncText) syncText.innerText = 'Synced with Cloud';
+
         const remotePrints = await res.json();
         if (remotePrints && remotePrints.length > 0) {
             const normalizedRemote = remotePrints.map(p => {
@@ -1025,7 +1042,10 @@ window.loadRecentPrints = async () => {
             renderPrints(merged);
         }
     } catch (e) {
-        // Backend unreachable — local render is already showing, no error message needed
+        const syncDot = document.getElementById('sync-dot');
+        const syncText = document.getElementById('sync-text');
+        if (syncDot) syncDot.style.background = 'var(--accent)';
+        if (syncText) syncText.innerText = 'Sync Failed (Offline)';
         console.warn('Gallery backend sync failed, showing local prints.');
     }
 };
