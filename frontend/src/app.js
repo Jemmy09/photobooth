@@ -1489,7 +1489,7 @@ window.deletePhoto = async (index) => {
         showToast("Masterpiece deleted", "success");
         
         // Close modal if open
-        const modal = document.querySelector('[style*="z-index:3000"]');
+        const modal = document.getElementById('print-viewer-modal');
         if (modal) modal.remove();
         
         loadRecentPrints(); // Refresh Gallery
@@ -1508,6 +1508,7 @@ window.openPrintModal = (index) => {
     if (!printUrl) return;
 
     const modal = document.createElement('div');
+    modal.id = 'print-viewer-modal';
     modal.style.cssText = 'position:fixed;inset:0;background:rgba(13,17,23,0.95);backdrop-filter:blur(16px);z-index:3000;display:flex;align-items:center;justify-content:center;padding:2rem;cursor:pointer;';
     modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
     modal.innerHTML = `
