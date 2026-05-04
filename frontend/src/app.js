@@ -1028,7 +1028,8 @@ window.loadRecentPrints = async () => {
         if (remotePrints && remotePrints.length > 0) {
             const normalizedRemote = remotePrints.map(p => {
                 if (typeof p === 'string') return { url: p, timestamp: Date.now() };
-                return p;
+                // Use server timestamp if available
+                return { url: p.url, timestamp: p.timestamp || Date.now() };
             });
             
             // Merge: Combine remote and local, de-duplicating by URL
