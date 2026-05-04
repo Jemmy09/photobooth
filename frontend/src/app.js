@@ -89,8 +89,11 @@ function init() {
                 window.appHeartbeat = setInterval(() => {
                     syncProfile(currentUser);
                     fetchNotifications();
-                    if (currentView === 'dashboard') fetchFriends(true); // Keep dashboard active list fresh
-                }, 60000); // Every minute
+                    if (currentView === 'dashboard') {
+                        fetchFriends(true); 
+                        window.loadRecentPrints(); // Robust Gallery Polling
+                    }
+                }, 30000); // Every 30 seconds for near-instant sync
             }
             
             showView('dashboard');
@@ -868,20 +871,25 @@ function finalizePrint(canvas, frameColor) {
 /** Save a print to localStorage immediately (max 3 kept) */
 function savePrintLocally(dataUrl) {
     if (!dataUrl) return;
+    const key = 'recent_prints';
     try {
-        const key = 'recent_prints';
         const existing = JSON.parse(localStorage.getItem(key) || '[]');
         const newPrint = { url: dataUrl, timestamp: Date.now() };
-        
-        // Safety: Keep max 10 high-res strips locally to avoid 5MB quota limits
-        const updated = [newPrint, ...existing.filter(p => p.url !== dataUrl)].slice(0, 10);
+        const updated = [newPrint, ...existing.filter(p => (p.url || p) !== dataUrl)].slice(0, 10);
         localStorage.setItem(key, JSON.stringify(updated));
         console.log("💾 Masterpiece cached locally");
     } catch (e) {
-        console.warn('Local storage full. Purging half to make room...', e);
-        const key = 'recent_prints';
-        const existing = JSON.parse(localStorage.getItem(key) || '[]');
-        localStorage.setItem(key, JSON.stringify(existing.slice(0, 5)));
+        console.warn('Local storage full. Purging old cache to make room...');
+        try {
+            // Aggressive purge: Keep only the 3 most recent to make room for the new one
+            const existing = JSON.parse(localStorage.getItem(key) || '[]');
+            const newPrint = { url: dataUrl, timestamp: Date.now() };
+            const updated = [newPrint, ...existing.slice(0, 2)];
+            localStorage.setItem(key, JSON.stringify(updated));
+            console.log("💾 Masterpiece cached after purge");
+        } catch (innerE) {
+            console.error("Critical Storage Error:", innerE);
+        }
     }
 }
 
@@ -957,16 +965,13 @@ window.loadRecentPrints = async () => {
                 ${prints.map((p, index) => {
                     const url = typeof p === 'string' ? p : p.url;
                     const timestamp = typeof p === 'string' ? Date.now() : p.timestamp;
-                    
                     const lifeSpan = 72 * 60 * 60 * 1000;
-                    const remaining = Math.max(0, lifeSpan - (Date.now() - timestamp));
+                    const remaining = Math.max(0, lifeSpan - (Date.now() - (timestamp || Date.now())));
                     const hours = Math.floor(remaining / (1000 * 60 * 60));
                     
                     return `
                         <div style="position: relative; flex: 0 0 auto; height: 380px; border-radius: 16px; overflow: hidden; box-shadow: var(--card-shadow); border: 1px solid var(--glass-border); cursor: pointer; transition: transform 0.3s ease; scroll-snap-align: start; background: #000;" onclick="window.openPrintModal(${index})" class="gallery-item-hover">
                             <img src="${url}" style="height: 100%; width: auto; display: block;" loading="lazy">
-                            
-                            <!-- Sleek Mini Badge -->
                             <div style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); padding: 4px 8px; border-radius: 8px; font-size: 0.6rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(255,255,255,0.1);">
                                 <div style="width: 5px; height: 5px; border-radius: 50%; background: ${hours < 6 ? 'var(--accent)' : 'var(--secondary)'};"></div>
                                 ${hours}H
@@ -980,12 +985,6 @@ window.loadRecentPrints = async () => {
     };
 
     const localPrints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
-    
-    const container = document.getElementById('recent-photos');
-    if (container && localPrints.length === 0) {
-        container.innerHTML = `<div class="loader-small"></div><p class="text-muted" style="font-size: 0.75rem; margin-top: 10px;">Syncing with Cloud...</p>`;
-    }
-
     renderPrints(localPrints);
 
     try {
@@ -993,20 +992,17 @@ window.loadRecentPrints = async () => {
         const res = await fetch(`${API_BASE_URL}/api/prints/recent`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        const remotePrints = await res.json();
+        if (!res.ok) throw new Error("Sync failed");
         
-        if (remotePrints && remotePrints.length > 0) {
+        const remotePrints = await res.json();
+        if (Array.isArray(remotePrints) && remotePrints.length > 0) {
             const normalizedRemote = remotePrints.map(p => {
                 if (typeof p === 'string') return { url: p, timestamp: Date.now() };
-                // Use server timestamp if available
                 return { url: p.url, timestamp: p.timestamp || Date.now() };
             });
             
-            // Merge: Combine remote and local, de-duplicating by URL
             const urlMap = new Map();
-            // Local takes priority for timestamps
             localPrints.forEach(p => urlMap.set(typeof p === 'string' ? p : p.url, p));
-            // Remote fills in the gaps
             normalizedRemote.forEach(p => {
                 const url = typeof p === 'string' ? p : p.url;
                 if (!urlMap.has(url)) urlMap.set(url, p);
@@ -1017,7 +1013,7 @@ window.loadRecentPrints = async () => {
             renderPrints(merged);
         }
     } catch (e) {
-        console.warn('Gallery backend sync failed, showing local prints.');
+        console.warn('Sync deferred:', e);
     }
 };
 
