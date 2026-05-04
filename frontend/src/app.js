@@ -848,24 +848,15 @@ function finalizePrint(canvas, frameColor) {
         document.getElementById('share-btn').onclick = () => sharePrint(dataUrl);
         refreshIcons();
         
-        // Auto-scroll down to perfectly reveal the captured masterpiece
         setTimeout(() => {
             resultContainer.scrollIntoView({ behavior: 'smooth', block: 'end' });
         }, 100);
     }
     
-    // 1. Immediate Local Save (Source of Truth for Gallery)
-    savePrintLocally(dataUrl);
+    // Cloud Sync ONLY (No more local storage for prints)
+    savePrintToDatabase(dataUrl); 
     
-    // 2. Background Cloud Sync (Non-blocking)
-    savePrintToDatabase(dataUrl, true); // Added 'isAlreadyLocal' flag to avoid double-saving locally
-    
-    // 3. Instant Gallery Refresh (Force-update cache)
-    if (window.loadRecentPrints) {
-        window.loadRecentPrints();
-    }
-    
-    showToast("Masterpiece saved to your Gallery! ✨", "success");
+    showToast("Masterpiece sent to Cloud Gallery! ☁️", "success");
 }
 
 /** Save a print to localStorage immediately (max 3 kept) */
@@ -893,11 +884,7 @@ function savePrintLocally(dataUrl) {
     }
 }
 
-async function savePrintToDatabase(dataUrl, isAlreadyLocal = false) {
-    // 1. Save locally first if not already done
-    if (!isAlreadyLocal) savePrintLocally(dataUrl);
-    
-    // 2. Silently try to sync with Aiven PostgreSQL
+async function savePrintToDatabase(dataUrl) {
     if (!currentUser || !dataUrl) return;
     try {
         const token = await currentUser.getIdToken();
@@ -908,17 +895,15 @@ async function savePrintToDatabase(dataUrl, isAlreadyLocal = false) {
         });
         
         if (response.ok) {
-            console.log("☁️ Masterpiece synced to Aiven Cloud");
-            showToast("Cloud backup secured! ☁️", "success");
-            // Optional: Re-fetch to get the official timestamp from DB
+            console.log("☁️ Masterpiece saved to Aiven PostgreSQL");
             if (window.loadRecentPrints) window.loadRecentPrints();
         } else {
-            console.warn("Cloud sync rejected by server:", response.status);
-            showToast("Saved locally, but Cloud sync failed.", "warning");
+            console.error("Cloud save rejected:", response.status);
+            showToast("Cloud storage limit or error. Photo not saved.", "error");
         }
     } catch(e) {
-        console.warn('Cloud sync deferred (offline or server sleeping):', e);
-        showToast("Offline: Cloud backup pending.", "warning");
+        console.error('Database connection failed:', e);
+        showToast("Backend connection error.", "error");
     }
 }
 
@@ -943,14 +928,14 @@ window.downloadPrint = async (url) => {
 window.loadRecentPrints = async () => {
     if (!currentUser) return;
     
+    const container = document.getElementById('recent-photos');
+    if (!container) return;
+
     const renderPrints = (prints) => {
-        const container = document.getElementById('recent-photos');
-        if (!container) return;
-        
         if (!prints || prints.length === 0) {
             container.innerHTML = `
                 <div id="recent-photos" style="min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed var(--glass-border); border-radius: 16px; overflow: hidden; background: rgba(0,0,0,0.2); gap: 1rem;">
-                    <p class="text-muted" style="font-size: 0.85rem; margin: 0;">Your gallery is empty. Head to the Studio! 📸</p>
+                    <p class="text-muted" style="font-size: 0.85rem; margin: 0;">Cloud gallery is empty. Head to the Studio! 📸</p>
                 </div>`;
             return;
         }
@@ -963,14 +948,14 @@ window.loadRecentPrints = async () => {
         container.innerHTML = `
             <div style="display: flex; gap: 1.25rem; overflow-x: auto; width: 100%; padding: 1rem 0; scroll-snap-type: x mandatory;" class="no-scrollbar">
                 ${prints.map((p, index) => {
-                    const url = typeof p === 'string' ? p : p.url;
-                    const timestamp = typeof p === 'string' ? Date.now() : p.timestamp;
+                    const url = p.url || p;
+                    const timestamp = p.timestamp || Date.now();
                     const lifeSpan = 72 * 60 * 60 * 1000;
-                    const remaining = Math.max(0, lifeSpan - (Date.now() - (timestamp || Date.now())));
+                    const remaining = Math.max(0, lifeSpan - (Date.now() - timestamp));
                     const hours = Math.floor(remaining / (1000 * 60 * 60));
                     
                     return `
-                        <div style="position: relative; flex: 0 0 auto; height: 380px; border-radius: 16px; overflow: hidden; box-shadow: var(--card-shadow); border: 1px solid var(--glass-border); cursor: pointer; transition: transform 0.3s ease; scroll-snap-align: start; background: #000;" onclick="window.openPrintModal(${index})" class="gallery-item-hover">
+                        <div style="position: relative; flex: 0 0 auto; height: 380px; border-radius: 16px; overflow: hidden; box-shadow: var(--card-shadow); border: 1px solid var(--glass-border); cursor: pointer; transition: transform 0.3s ease; scroll-snap-align: start; background: #000;" onclick="window.openPrintModalFromData('${url}', ${index})" class="gallery-item-hover">
                             <img src="${url}" style="height: 100%; width: auto; display: block;" loading="lazy">
                             <div style="position: absolute; top: 12px; right: 12px; background: rgba(0,0,0,0.6); backdrop-filter: blur(8px); padding: 4px 8px; border-radius: 8px; font-size: 0.6rem; font-weight: 800; color: white; display: flex; align-items: center; gap: 4px; border: 1px solid rgba(255,255,255,0.1);">
                                 <div style="width: 5px; height: 5px; border-radius: 50%; background: ${hours < 6 ? 'var(--accent)' : 'var(--secondary)'};"></div>
@@ -984,8 +969,13 @@ window.loadRecentPrints = async () => {
         refreshIcons();
     };
 
-    const localPrints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
-    renderPrints(localPrints);
+    // Show persistent loader during cloud fetch
+    container.innerHTML = `
+        <div style="min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+            <div class="loader-small"></div>
+            <p class="text-muted" style="font-size: 0.75rem; margin-top: 10px; font-weight: 600; letter-spacing: 0.05em;">FETCHING FROM AIVEN...</p>
+        </div>
+    `;
 
     try {
         const token = await currentUser.getIdToken();
@@ -995,25 +985,61 @@ window.loadRecentPrints = async () => {
         if (!res.ok) throw new Error("Sync failed");
         
         const remotePrints = await res.json();
-        if (Array.isArray(remotePrints) && remotePrints.length > 0) {
-            const normalizedRemote = remotePrints.map(p => {
-                if (typeof p === 'string') return { url: p, timestamp: Date.now() };
-                return { url: p.url, timestamp: p.timestamp || Date.now() };
-            });
-            
-            const urlMap = new Map();
-            localPrints.forEach(p => urlMap.set(typeof p === 'string' ? p : p.url, p));
-            normalizedRemote.forEach(p => {
-                const url = typeof p === 'string' ? p : p.url;
-                if (!urlMap.has(url)) urlMap.set(url, p);
-            });
-            
-            const merged = Array.from(urlMap.values()).slice(0, 20);
-            localStorage.setItem('recent_prints', JSON.stringify(merged));
-            renderPrints(merged);
+        if (Array.isArray(remotePrints)) {
+            renderPrints(remotePrints);
+            // Cache only the URLs for quick modal access (non-blocking)
+            window.lastFetchedPrints = remotePrints;
         }
     } catch (e) {
-        console.warn('Sync deferred:', e);
+        container.innerHTML = `
+            <div id="recent-photos" style="min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed var(--accent); border-radius: 16px; background: rgba(255,0,0,0.05); gap: 1rem;">
+                <p style="color: var(--accent); font-size: 0.85rem; font-weight: 700;">CLOUD SYNC ERROR</p>
+                <p class="text-muted" style="font-size: 0.7rem;">Check your connection to Aiven PostgreSQL</p>
+            </div>`;
+    }
+};
+
+window.openPrintModalFromData = (url, index) => {
+    const modal = document.createElement('div');
+    modal.id = 'print-viewer-modal';
+    modal.style.cssText = 'position:fixed;inset:0;background:rgba(13,17,23,0.95);backdrop-filter:blur(16px);z-index:3000;display:flex;align-items:center;justify-content:center;padding:2rem;cursor:pointer;';
+    modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+    modal.innerHTML = `
+        <div class="fade-in" style="position:relative;max-width:100%;max-height:100%;display:flex;flex-direction:column;align-items:center;gap:1.5rem;">
+            <img src="${url}" style="max-width:100%;max-height:80vh;border-radius:4px;box-shadow:0 25px 60px rgba(0,0,0,0.6);" loading="lazy">
+            <div style="display:flex;gap:1rem;">
+                <button onclick="window.downloadDirect('${url}')" class="btn btn-primary" style="padding:0.75rem 2rem;border-radius:30px;"><i data-lucide="download" style="width:18px;"></i> Save</button>
+                <button onclick="window.deleteDirect('${url}')" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px; background: rgba(255, 69, 0, 0.1); color: var(--accent); border: 1px solid rgba(255, 69, 0, 0.3);"><i data-lucide="trash-2" style="width:18px;"></i> Delete</button>
+                <button onclick="this.closest('[style*=fixed]').remove()" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px;">Close</button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    refreshIcons();
+};
+
+window.downloadDirect = (url) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `lumina-cloud-${Date.now()}.png`;
+    link.click();
+};
+
+window.deleteDirect = async (url) => {
+    if (!confirm("Are you sure you want to delete this from Cloud?")) return;
+    try {
+        const token = await currentUser.getIdToken();
+        await fetch(`${API_BASE_URL}/api/prints/delete`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ imageData: url })
+        });
+        showToast("Deleted from Aiven Cloud", "success");
+        const modal = document.getElementById('print-viewer-modal');
+        if (modal) modal.remove();
+        loadRecentPrints();
+    } catch (e) {
+        showToast("Delete failed", "error");
     }
 };
 
