@@ -947,21 +947,22 @@ window.loadRecentPrints = async () => {
                     const colorLabel = hours < 6 ? 'var(--accent)' : 'var(--secondary)';
 
                     return `
-                        <div style="position: relative; flex: 0 0 auto; height: 260px; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: transform 0.3s;" onclick="window.openPrintModal(${index})" class="gallery-item-hover">
-                            <img src="${url}" style="height: 100%; width: auto; object-fit: cover; display: block;" loading="lazy">
+                        <div style="position: relative; flex: 0 0 auto; height: 300px; border-radius: 12px; overflow: hidden; box-shadow: 0 15px 35px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); background: #000;" onclick="window.openPrintModal(${index})" class="gallery-item-hover">
+                            <img src="${url}" style="height: 100%; width: auto; object-fit: contain; display: block;" loading="lazy">
                             
                             <!-- Expiration Badge -->
-                            <div style="position: absolute; top: 10px; left: 10px; background: rgba(13, 17, 23, 0.8); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 6px; z-index: 10;">
-                                <div style="width: 6px; height: 6px; border-radius: 50%; background: ${colorLabel}; box-shadow: 0 0 8px ${colorLabel};"></div>
-                                <span style="font-size: 0.65rem; font-weight: 800; color: white; letter-spacing: 0.02em;">${timeLabel}</span>
+                            <div style="position: absolute; top: 12px; left: 12px; background: rgba(13, 17, 23, 0.85); backdrop-filter: blur(12px); padding: 5px 12px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); display: flex; align-items: center; gap: 8px; z-index: 10; box-shadow: 0 4px 15px rgba(0,0,0,0.3);">
+                                <div style="width: 8px; height: 8px; border-radius: 50%; background: ${colorLabel}; box-shadow: 0 0 10px ${colorLabel};"></div>
+                                <span style="font-size: 0.7rem; font-weight: 800; color: white; letter-spacing: 0.03em; text-transform: uppercase;">${timeLabel}</span>
                             </div>
 
-                            <div style="position: absolute; bottom: 10px; right: 10px; display: flex; gap: 6px;">
-                                <button onclick="event.stopPropagation(); window.downloadPrintLocally(${index})" class="btn-icon" style="background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); width: 34px; height: 34px; border-radius: 10px;">
-                                    <i data-lucide="download" style="width: 16px; height: 16px; color: white;"></i>
+                            <!-- Bottom Action Overlay -->
+                            <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 60px; background: linear-gradient(to top, rgba(0,0,0,0.8), transparent); display: flex; align-items: center; justify-content: flex-end; padding: 0 12px; gap: 8px; opacity: 0.9;">
+                                <button onclick="event.stopPropagation(); window.downloadPrintLocally(${index})" class="btn-icon" style="background: rgba(255, 255, 255, 0.15); backdrop-filter: blur(15px); border: 1px solid rgba(255,255,255,0.2); width: 36px; height: 36px; border-radius: 50%;">
+                                    <i data-lucide="download" style="width: 18px; height: 18px; color: white;"></i>
                                 </button>
-                                <button onclick="event.stopPropagation(); window.deletePhoto(${index})" class="btn-icon" style="background: rgba(239, 68, 68, 0.2); backdrop-filter: blur(12px); border: 1px solid rgba(239, 68, 68, 0.3); width: 34px; height: 34px; border-radius: 10px;">
-                                    <i data-lucide="trash-2" style="width: 16px; height: 16px; color: #ef4444;"></i>
+                                <button onclick="event.stopPropagation(); window.deletePhoto(${index})" class="btn-icon" style="background: rgba(239, 68, 68, 0.2); backdrop-filter: blur(15px); border: 1px solid rgba(239, 68, 68, 0.4); width: 36px; height: 36px; border-radius: 50%;">
+                                    <i data-lucide="trash-2" style="width: 18px; height: 18px; color: #ef4444;"></i>
                                 </button>
                             </div>
                         </div>
