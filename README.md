@@ -131,7 +131,7 @@ lumina/
 |---|---|
 | **v1.8.1** | **STABLE** — Cloud-only gallery sync, grid view, and image distortion fix |
 | **v1.7.3** | Removed LocalStorage for prints; Aiven PostgreSQL is now the source of truth |
-| **v1.6.1** | **STABLE** — AI Face Tracking, Smart Bokeh, High-Res Cinema Layouts, and 10+ Themed Studio Frames |
+| **v1.6.1** | AI Face Tracking, Smart Bokeh, High-Res Cinema Layouts, and 10+ Themed Studio Frames |
 | **v1.6.0** | Unified Filter Engine v2.0: Optimized overlays, Bokeh safety checks, and Puppy V2 logic |
 | **v1.5.9** | Puppy Lens V2: Split ears/muzzle assets + Blushing cheeks + Skin smoothing |
 | **v1.5.8** | Optimized Puppy Lens for better face alignment & transparency |
