@@ -836,6 +836,10 @@ function finalizePrint(canvas, frameColor) {
     }
     
     savePrintToDatabase(dataUrl);
+    savePrintLocally(dataUrl);
+    
+    if (window.loadRecentPrints) window.loadRecentPrints();
+    
     showToast("Print ready! ✨", "success");
 }
 
