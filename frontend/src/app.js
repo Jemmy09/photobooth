@@ -1,5 +1,5 @@
 /** 
- * Lumina Engine v1.6.0 STABLE
+ * Lumina Engine v1.6.1 STABLE
  * Professional Filter System & Pro Controls
  */
 import './style.css';
@@ -43,8 +43,7 @@ const LENSES = {
     golden: { name: 'Golden', filter: 'sepia(0.4) saturate(1.8) brightness(1.1) hue-rotate(-10deg)', icon: 'sparkles' },
     silver: { name: 'Silver', filter: 'grayscale(1) brightness(1.1) contrast(1.3) sepia(0.1)', icon: 'aperture' },
     portrait: { name: 'Portrait', filter: 'brightness(1.08) contrast(1.05) saturate(1.1) sepia(0.05)', icon: 'camera', bokeh: true },
-    ocean: { name: 'Ocean', filter: 'hue-rotate(180deg) saturate(1.4) brightness(1.1) contrast(1.1)', icon: 'droplet' },
-    puppy: { name: 'Puppy', filter: 'blur(0.2px) brightness(1.1) saturate(1.2) contrast(1.05)', icon: 'dog', puppy: true }
+    ocean: { name: 'Ocean', filter: 'hue-rotate(180deg) saturate(1.4) brightness(1.1) contrast(1.1)', icon: 'droplet' }
 };
 let mediaStream = null;
 let photos = [];
@@ -61,7 +60,7 @@ function init() {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            console.log("🚀 Lumina System — v1.6.0 STABLE — Authenticated & Active");
+            console.log("🚀 Lumina System — v1.6.1 STABLE — Authenticated & Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             
@@ -312,8 +311,6 @@ window.applyLens = (lensKey) => {
     
     const video = document.getElementById('video');
     const bokeh = document.getElementById('bokeh-overlay');
-    const ears = document.getElementById('puppy-ears');
-    const muzzle = document.getElementById('puppy-muzzle');
     
     if (video) {
         video.style.filter = LENSES[lensKey].filter;
@@ -323,11 +320,6 @@ window.applyLens = (lensKey) => {
     if (bokeh) {
         bokeh.classList.toggle('hidden', !LENSES[lensKey].bokeh);
     }
-
-    // Toggle Puppy Assets
-    const isPuppy = LENSES[lensKey].puppy;
-    if (ears) ears.classList.toggle('hidden', !isPuppy);
-    if (muzzle) muzzle.classList.toggle('hidden', !isPuppy);
     
     // Highlight active lens in UI
     document.querySelectorAll('.lens-item').forEach(item => {
@@ -423,32 +415,6 @@ async function captureImage() {
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     }
     
-    // If Puppy is active, overlay the dog filter images
-    if (lens.puppy) {
-        const earsImg = document.getElementById('puppy-ears');
-        const muzzleImg = document.getElementById('puppy-muzzle');
-        
-        ctx.save();
-        ctx.setTransform(1, 0, 0, 1, 0, 0); 
-        ctx.globalCompositeOperation = 'screen';
-        
-        if (earsImg && earsImg.complete) {
-            const eW = canvas.width * 1.1;
-            const eH = (earsImg.naturalHeight / earsImg.naturalWidth) * eW;
-            const eX = (canvas.width - eW) / 2;
-            const eY = canvas.height * 0.05;
-            ctx.drawImage(earsImg, eX, eY, eW, eH);
-        }
-        
-        if (muzzleImg && muzzleImg.complete) {
-            const mW = canvas.width * 0.75;
-            const mH = (muzzleImg.naturalHeight / muzzleImg.naturalWidth) * mW;
-            const mX = (canvas.width - mW) / 2;
-            const mY = canvas.height * 0.48;
-            ctx.drawImage(muzzleImg, mX, mY, mW, mH);
-        }
-        
-        ctx.restore();
     }
     
     return canvas.toDataURL('image/png');
