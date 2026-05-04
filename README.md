@@ -105,6 +105,37 @@ cd backend && node server.js
 
 ---
 
+## 📁 Project Structure
+
+```text
+lumina/
+├── frontend/
+│   ├── src/
+│   │   ├── app.js          # Core application logic & routing
+│   │   └── style.css       # Lumina design system & CSS variables
+│   ├── public/             # Static assets
+│   ├── index.html          # App shell & view templates
+│   └── vite.config.js
+├── backend/
+│   ├── server.js           # Express API — auth, profiles, prints, friends
+│   └── .env.example
+└── README.md
+```
+
+---
+
+## 📜 Version History
+
+| Version | Notes |
+|---|---|
+| **v1.4.0** | **STABLE** — Lumina rebrand, tangerine × mint design system, camera flip fix, functional Studio back button |
+| **v1.3.5** | Notification controls, dashboard gallery optimization |
+| **v1.3.0** | Design Update — Glassmorphism UI, real-time presence |
+| **v1.2.0** | Migrated to monorepo structure |
+| **v1.0.0** | Initial launch — core camera & social features |
+
+---
+
 <p align="center">
   <b>Crafted with care by Jemmy Francisco</b><br>
   <i>Always learning, always building.</i>
