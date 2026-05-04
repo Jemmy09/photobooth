@@ -1552,7 +1552,7 @@ window.openPrintModal = (index) => {
     modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
     modal.innerHTML = `
         <div class="fade-in" style="position:relative;max-width:100%;max-height:100%;display:flex;flex-direction:column;align-items:center;gap:1.5rem;">
-            <img src="${printUrl}" style="max-width:100%;max-height:80vh;border:12px solid white;border-radius:4px;box-shadow:0 25px 60px rgba(0,0,0,0.6);" loading="lazy">
+            <img src="${printUrl}" style="max-width:100%;max-height:80vh;border-radius:4px;box-shadow:0 25px 60px rgba(0,0,0,0.6);" loading="lazy">
             <div style="display:flex;gap:1rem;">
                 <button onclick="window.downloadPrintLocally(${index})" class="btn btn-primary" style="padding:0.75rem 2rem;border-radius:30px;"><i data-lucide="download" style="width:18px;"></i> Save</button>
                 <button onclick="window.deletePhoto(${index})" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px; background: rgba(255, 69, 0, 0.1); color: var(--accent); border: 1px solid rgba(255, 69, 0, 0.3);"><i data-lucide="trash-2" style="width:18px;"></i> Delete</button>
