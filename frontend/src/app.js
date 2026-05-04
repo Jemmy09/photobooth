@@ -1453,7 +1453,50 @@ function updateUserUI() {
 
 window.downloadPrintLocally = async (index) => {
     const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
-    if (prints[index]) window.downloadPrint(prints[index]);
+    const data = prints[index];
+    if (!data) return;
+    
+    const link = document.createElement('a');
+    link.href = data;
+    link.download = `lumina-masterpiece-${Date.now()}.png`;
+    link.click();
+};
+
+window.deletePhoto = async (index) => {
+    if (!confirm("Are you sure you want to delete this masterpiece?")) return;
+
+    try {
+        const prints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
+        const imageData = prints[index];
+        
+        // 1. Local Deletion
+        prints.splice(index, 1);
+        localStorage.setItem('recent_prints', JSON.stringify(prints));
+        
+        // 2. Cloud Deletion
+        if (currentUser && imageData) {
+            const token = await currentUser.getIdToken();
+            await fetch(`${API_BASE_URL}/api/prints/delete`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ imageData })
+            });
+        }
+        
+        showToast("Masterpiece deleted", "success");
+        
+        // Close modal if open
+        const modal = document.querySelector('[style*="z-index:3000"]');
+        if (modal) modal.remove();
+        
+        loadRecentPrints(); // Refresh Gallery
+    } catch (e) {
+        console.error("Delete Error:", e);
+        showToast("Failed to delete", "error");
+    }
 };
 
 
@@ -1472,7 +1515,7 @@ window.openPrintModal = (index) => {
             <img src="${printUrl}" style="max-width:100%;max-height:80vh;border:12px solid white;border-radius:4px;box-shadow:0 25px 60px rgba(0,0,0,0.6);" loading="lazy">
             <div style="display:flex;gap:1rem;">
                 <button onclick="window.downloadPrintLocally(${index})" class="btn btn-primary" style="padding:0.75rem 2rem;border-radius:30px;"><i data-lucide="download" style="width:18px;"></i> Save</button>
-                <button onclick="window.deletePrint(${index})" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px; background: rgba(255, 69, 0, 0.1); color: var(--accent); border: 1px solid rgba(255, 69, 0, 0.3);"><i data-lucide="trash-2" style="width:18px;"></i> Delete</button>
+                <button onclick="window.deletePhoto(${index})" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px; background: rgba(255, 69, 0, 0.1); color: var(--accent); border: 1px solid rgba(255, 69, 0, 0.3);"><i data-lucide="trash-2" style="width:18px;"></i> Delete</button>
                 <button onclick="this.closest('[style*=fixed]').remove()" class="btn btn-secondary" style="padding:0.75rem 2rem;border-radius:30px;">Close</button>
             </div>
         </div>
