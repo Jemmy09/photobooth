@@ -983,14 +983,24 @@ window.loadRecentPrints = async () => {
         if (!res.ok) return;
         const remotePrints = await res.json();
         if (remotePrints && remotePrints.length > 0) {
-            // Note: remotePrints should ideally return objects with created_at from DB
-            // For now, if they are just strings, we map them
-            const normalized = remotePrints.map(p => {
+            const normalizedRemote = remotePrints.map(p => {
                 if (typeof p === 'string') return { url: p, timestamp: Date.now() };
                 return p;
             });
-            localStorage.setItem('recent_prints', JSON.stringify(normalized));
-            renderPrints(normalized);
+            
+            // Merge: Combine remote and local, de-duplicating by URL
+            const urlMap = new Map();
+            // Local takes priority for timestamps
+            localPrints.forEach(p => urlMap.set(typeof p === 'string' ? p : p.url, p));
+            // Remote fills in the gaps
+            normalizedRemote.forEach(p => {
+                const url = typeof p === 'string' ? p : p.url;
+                if (!urlMap.has(url)) urlMap.set(url, p);
+            });
+            
+            const merged = Array.from(urlMap.values()).slice(0, 20);
+            localStorage.setItem('recent_prints', JSON.stringify(merged));
+            renderPrints(merged);
         }
     } catch (e) {
         // Backend unreachable — local render is already showing, no error message needed
