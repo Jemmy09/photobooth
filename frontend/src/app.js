@@ -1,5 +1,5 @@
 /** 
- * Lumina Engine v1.6.1 STABLE
+ * Lumina Engine v1.7.3 STABLE
  * Professional Filter System & Pro Controls
  */
 import './style.css';

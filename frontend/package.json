@@ -1,6 +1,6 @@
 {
   "name": "photobooth",
-  "version": "1.6.1",
+  "version": "1.7.3",
   "private": true,
   "type": "module",
   "scripts": {
