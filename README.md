@@ -1,42 +1,110 @@
-# 📸 Lumina Studio | v1.8.1 STABLE
+<p align="center">
+  <img src="frontend/public/lumina_logo.png" alt="Lumina Logo" width="280" />
+</p>
 
-![Lumina Status](https://img.shields.io/badge/Status-v1.8.1_STABLE-00D68F?style=for-the-badge&logo=react)
-![Cloud Architecture](https://img.shields.io/badge/Architecture-Cloud--First-FF6B2B?style=for-the-badge)
+<h1 align="center">Lumina Studio</h1>
 
-Lumina is a premium, cloud-native photobooth application designed for high-fidelity memory capture and seamless cross-device synchronization.
+<p align="center">
+  <i>A premium, cloud-native photobooth built to capture memories and connect friends.</i>
+</p>
 
-## 💎 The v1.8.1 Experience
-
-### ☁️ Pure Cloud Synchronization
-Lumina has evolved beyond local storage. Every masterpiece is synchronized in real-time with **Lumina Cloud (Aiven PostgreSQL)**. This ensures that your studio results are accessible, persistent, and identical across every device you own.
-
-### 🖼️ High-Fidelity Grid Gallery
-Experience your memories in a professional, responsive grid layout.
-* **Native Feel**: Optimized for both mobile (2-column snap) and desktop displays.
-* **Smart Interaction**: Hover to reveal sleek Download and Delete controls.
-* **Liquid Transitions**: Powered by modern CSS transitions for a premium UI rhythm.
-
-### 🛡️ Anti-Distortion Rendering
-Our proprietary **drawCover** engine eliminates image stretching. By intelligently cropping camera feeds to fit photobooth slots, Lumina preserves natural facial proportions regardless of your camera's aspect ratio.
-
-### ✨ Studio-Grade UX
-* **Lumina Cloud Branding**: A unified, high-end visual identity.
-* **Real-Time Polling**: Automatic cloud fetching every 30 seconds.
-* **Vertical Strip Optimization**: Support for classic 1:2.5 photobooth strips.
+<p align="center">
+  <img src="https://img.shields.io/badge/VERSION-v1.8.1_STABLE-00D68F?style=for-the-badge&logo=statuspage&logoColor=white" alt="Version">
+  <img src="https://img.shields.io/badge/ARCHITECTURE-CLOUD%20FIRST-FF6B2B?style=for-the-badge&logo=render&logoColor=white" alt="Architecture">
+  <img src="https://img.shields.io/badge/DATABASE-AIVEN%20POSTGRESQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="Database">
+  <img src="https://img.shields.io/badge/AUTH-FIREBASE-FF6B2B?style=for-the-badge&logo=firebase&logoColor=white" alt="Auth">
+</p>
 
 ---
 
-## 🛠️ Technical Foundation
-* **Frontend**: Vite + Vanilla JS (Zero-dependency logic)
-* **Design**: Custom Glassmorphism UI System
-* **Database**: Aiven PostgreSQL (Source of Truth)
-* **Security**: Firebase JWT Authentication
-* **AI Engine**: Face-api.js (Intelligent Bokeh & Focus)
+### Hello, I'm Jemmy Francisco.
 
-## 🚀 Live Access
-* **Studio**: [Open Lumina Studio](https://jemmy09.github.io/photobooth/)
-* **Cloud API**: [Lumina Cloud Backend](https://photobooth-backend-sdyv.onrender.com)
+I built **Lumina** to create a simple, functional space for people to take photos and share moments. This project has evolved into a high-performance, cloud-native application using **Aiven PostgreSQL** as the single source of truth for all masterpieces.
 
 ---
-*Functional. Responsive. Clean. Clear. Synchronized. Smart. Professional.*
-**Lumina — Capture the Masterpiece.**
+
+## 🚀 What's New in v1.8.1 STABLE
+
+*   **☁️ 100% Cloud-First Architecture**: Eliminated all `LocalStorage` dependencies. Masterpieces are synchronized in real-time with the Lumina Cloud for absolute cross-device consistency.
+*   **🖼️ Premium Grid Gallery**: A redesigned, responsive grid view mimicking native gallery apps with sleek hover-activated Download/Delete controls.
+*   **🛡️ Anti-Distortion Engine**: Proprietary `drawCover` canvas logic that prevents image stretching, ensuring natural facial proportions regardless of camera aspect ratio.
+*   **✨ Lumina Cloud Branding**: A unified, high-end professional identity across the entire user experience.
+
+---
+
+## 📸 How to Use Lumina
+
+1. **Create an Account:** Sign up securely using your email or Google account to access your personal dashboard.
+2. **Enter the Studio:** Click on the Studio tab to open the camera. Choose between your front and rear cameras.
+3. **Set Up Your Shot:** Choose your layout (4-shot vertical strip, postcard, etc.) and pick a themed frame.
+4. **Capture:** The app runs a 3-second countdown and captures your sequence using the **drawCover** engine.
+5. **View Your Gallery:** Your masterpiece instantly appears on your Dashboard in the new **Grid Gallery**.
+6. **Connect with Friends:** Use the Community tab to search for users and send friend requests.
+
+---
+
+## 🧹 Storage & Cleanup Policy
+
+Lumina runs on a high-performance Aiven PostgreSQL database. To maintain speed and reliability, we employ the following policies:
+
+*   **3-Day Retention:** Masterpieces are securely stored in the Lumina Cloud for **72 hours (3 days)**.
+*   **Automatic Deletion:** After 3 days, the system automatically purges stale images to optimize storage.
+*   **Source of Truth:** All data is fetched directly from the cloud—no local caching issues.
+
+---
+
+## 🛠️ Technical Stack
+
+### 🧠 Programming Languages
+*   **JavaScript (JS):** Core logic for Frontend (Vite) and Backend (Node.js/Express).
+*   **SQL:** Direct database management for Aiven PostgreSQL.
+
+### 🎨 Design & Structure
+*   **HTML5 & CSS3:** Custom Glassmorphism UI system.
+*   **Face-API.js:** AI-powered face tracking and intelligent bokeh.
+
+### ☁️ Cloud Platforms
+*   **Aiven PostgreSQL:** Managed cloud database (The Source of Truth).
+*   **Firebase:** Secure user authentication.
+*   **Render:** High-availability backend hosting.
+*   **GitHub Pages:** Fast, edge-distributed frontend hosting.
+
+---
+
+## 📁 Project Structure
+
+```text
+lumina/
+├── frontend/
+│   ├── src/
+│   │   ├── app.js          # Core logic & Cloud Sync engine
+│   │   └── style.css       # Design system & Glassmorphism
+│   ├── public/             # Static assets
+│   ├── index.html          # App shell & views
+│   └── vite.config.js
+├── backend/
+│   ├── server.js           # Lumina Cloud API (Aiven PG + Auth)
+│   └── .env.example
+└── README.md
+```
+
+---
+
+## 📜 Version History
+
+| Version | Notes |
+|---|---|
+| **v1.8.1** | **STABLE** — Cloud-First Architecture, Premium Grid Gallery, and drawCover Anti-Distortion Engine |
+| **v1.7.3** | Migrated to Aiven PostgreSQL source of truth; removed LocalStorage masterpiece cache |
+| **v1.6.1** | **STABLE** — AI Face Tracking, Smart Bokeh, High-Res Cinema Layouts, and 10+ Themed Studio Frames |
+| **v1.6.0** | Unified Filter Engine v2.0: Optimized overlays, Bokeh safety checks, and Puppy V2 logic |
+| **v1.5.0** | Offline-first Gallery, Aiven DB Sync, 3-day Auto-Purge, new Custom Favicon |
+| **v1.4.0** | Lumina rebrand, tangerine × mint design system |
+| **v1.0.0** | Initial launch — core camera & social features |
+
+---
+
+<p align="center">
+  <b>Crafted with care by Jemmy Francisco</b><br>
+  <i>Always learning, always building.</i>
+</p>
