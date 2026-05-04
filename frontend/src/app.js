@@ -847,8 +847,9 @@ function savePrintLocally(dataUrl) {
     try {
         const key = 'recent_prints';
         const existing = JSON.parse(localStorage.getItem(key) || '[]');
-        // Prepend newest, keep max 3
-        const updated = [dataUrl, ...existing].slice(0, 3);
+        // Prepend newest with timestamp, keep max 3
+        const newPrint = { url: dataUrl, timestamp: Date.now() };
+        const updated = [newPrint, ...existing].slice(0, 3);
         localStorage.setItem(key, JSON.stringify(updated));
     } catch (e) {
         console.warn('localStorage save failed (quota?):', e);
@@ -897,7 +898,6 @@ window.loadRecentPrints = async () => {
     const container = document.getElementById('recent-photos');
     if (!container) return;
     
-    // --- Step 1: Show localStorage prints immediately (no network needed) ---
     const localPrints = JSON.parse(localStorage.getItem('recent_prints') || '[]');
     
     const renderPrints = (prints) => {
@@ -906,47 +906,73 @@ window.loadRecentPrints = async () => {
             container.innerHTML = '<p class="text-muted" style="font-size: 0.85rem;">Your gallery is empty. Head to the Studio!</p>';
             return;
         }
+        
         container.style.border = 'none';
         container.style.background = 'transparent';
         container.style.padding = '0';
         container.style.minHeight = 'unset';
+        
         container.innerHTML = `
             <div style="display: flex; gap: 1rem; overflow-x: auto; width: 100%; padding: 0.5rem 0;" class="no-scrollbar">
-                ${prints.map((p, index) => `
-                    <div style="position: relative; flex: 0 0 auto; height: 260px; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);" onclick="window.openPrintModal(${index})" class="gallery-item-hover">
-                        <img src="${p}" style="height: 100%; width: auto; object-fit: cover; display: block;" loading="lazy">
-                        <div style="position: absolute; bottom: 10px; right: 10px; display: flex; gap: 6px;">
-                            <button onclick="event.stopPropagation(); window.downloadPrintLocally(${index})" class="btn-icon" style="background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); width: 34px; height: 34px; border-radius: 10px;">
-                                <i data-lucide="download" style="width: 16px; height: 16px; color: white;"></i>
-                            </button>
-                            <button onclick="event.stopPropagation(); window.deletePhoto(${index})" class="btn-icon" style="background: rgba(239, 68, 68, 0.2); backdrop-filter: blur(12px); border: 1px solid rgba(239, 68, 68, 0.3); width: 34px; height: 34px; border-radius: 10px;">
-                                <i data-lucide="trash-2" style="width: 16px; height: 16px; color: #ef4444;"></i>
-                            </button>
+                ${prints.map((p, index) => {
+                    const url = typeof p === 'string' ? p : p.url;
+                    const timestamp = typeof p === 'string' ? Date.now() : p.timestamp;
+                    
+                    // Calculate remaining time (72 hours = 259200000ms)
+                    const lifeSpan = 72 * 60 * 60 * 1000;
+                    const elapsed = Date.now() - timestamp;
+                    const remaining = Math.max(0, lifeSpan - elapsed);
+                    
+                    const hours = Math.floor(remaining / (1000 * 60 * 60));
+                    const mins = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+                    
+                    const timeLabel = remaining > 0 ? `${hours}h ${mins}m left` : 'Expiring...';
+                    const colorLabel = hours < 6 ? 'var(--accent)' : 'var(--secondary)';
+
+                    return `
+                        <div style="position: relative; flex: 0 0 auto; height: 260px; border-radius: 16px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: transform 0.3s;" onclick="window.openPrintModal(${index})" class="gallery-item-hover">
+                            <img src="${url}" style="height: 100%; width: auto; object-fit: cover; display: block;" loading="lazy">
+                            
+                            <!-- Expiration Badge -->
+                            <div style="position: absolute; top: 10px; left: 10px; background: rgba(13, 17, 23, 0.8); backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; gap: 6px; z-index: 10;">
+                                <div style="width: 6px; height: 6px; border-radius: 50%; background: ${colorLabel}; box-shadow: 0 0 8px ${colorLabel};"></div>
+                                <span style="font-size: 0.65rem; font-weight: 800; color: white; letter-spacing: 0.02em;">${timeLabel}</span>
+                            </div>
+
+                            <div style="position: absolute; bottom: 10px; right: 10px; display: flex; gap: 6px;">
+                                <button onclick="event.stopPropagation(); window.downloadPrintLocally(${index})" class="btn-icon" style="background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); width: 34px; height: 34px; border-radius: 10px;">
+                                    <i data-lucide="download" style="width: 16px; height: 16px; color: white;"></i>
+                                </button>
+                                <button onclick="event.stopPropagation(); window.deletePhoto(${index})" class="btn-icon" style="background: rgba(239, 68, 68, 0.2); backdrop-filter: blur(12px); border: 1px solid rgba(239, 68, 68, 0.3); width: 34px; height: 34px; border-radius: 10px;">
+                                    <i data-lucide="trash-2" style="width: 16px; height: 16px; color: #ef4444;"></i>
+                                </button>
+                            </div>
                         </div>
-                    </div>
-                `).join('')}
+                    `;
+                }).join('')}
             </div>
         `;
         refreshIcons();
     };
 
-    // Render local prints right away
     renderPrints(localPrints);
 
-    // --- Step 2: Try backend silently — update if it returns more/fresher data ---
     try {
         const token = await currentUser.getIdToken();
         const res = await fetch(`${API_BASE_URL}/api/prints/recent`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        if (!res.ok) return; // Backend down — local render already done
+        if (!res.ok) return;
         const remotePrints = await res.json();
         if (remotePrints && remotePrints.length > 0) {
-            // Merge: remote prints take precedence, keep local as fallback
-            const merged = [...new Set([...remotePrints, ...localPrints])].slice(0, 3);
-            // Update localStorage with merged set
-            localStorage.setItem('recent_prints', JSON.stringify(merged));
-            renderPrints(merged);
+            // Note: remotePrints should ideally return objects with created_at from DB
+            // For now, if they are just strings, we map them
+            const normalized = remotePrints.map(p => {
+                if (typeof p === 'string') return { url: p, timestamp: Date.now() };
+                return p;
+            });
+            localStorage.setItem('recent_prints', JSON.stringify(normalized));
+            renderPrints(normalized);
         }
     } catch (e) {
         // Backend unreachable — local render is already showing, no error message needed
