@@ -563,10 +563,12 @@ window.handleCapture = async () => {
     shutterBtn.disabled = true;
     shutterBtn.style.transform = 'scale(0.8)';
     
+    const timerDuration = parseInt(document.getElementById('shutter-timer').value) || 3;
+    
     for (let i = 0; i < 4; i++) {
         // Countdown
         countdownEl.classList.remove('hidden');
-        for (let j = 3; j > 0; j--) {
+        for (let j = timerDuration; j > 0; j--) {
             countdownEl.innerText = j;
             await new Promise(r => setTimeout(r, 800));
         }
@@ -596,7 +598,8 @@ window.handleCapture = async () => {
     const colorMap = {
         white: '#ffffff',
         black: '#0f172a',
-        pink: '#fce7f3'
+        pink: '#fce7f3',
+        gold: '#fbbf24'
     };
     
     generatePrint(shots, mode, colorMap[frameColor] || '#ffffff');
@@ -715,6 +718,23 @@ function generatePrint(shots, mode, frameColor) {
             img.src = p;
             img.onload = () => {
                 ctx.drawImage(img, 20, 20 + (i * 290), 360, 270);
+                loaded++;
+                if (loaded === 4) finalizePrint(canvas, frameColor);
+            };
+        });
+    } else if (mode === 'horizontal') {
+        // Cinema Horizontal (4 side by side)
+        canvas.width = 1200;
+        canvas.height = 400;
+        ctx.fillStyle = frameColor;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        
+        let loaded = 0;
+        shots.forEach((p, i) => {
+            const img = new Image();
+            img.src = p;
+            img.onload = () => {
+                ctx.drawImage(img, 20 + (i * 290), 20, 270, 360);
                 loaded++;
                 if (loaded === 4) finalizePrint(canvas, frameColor);
             };
