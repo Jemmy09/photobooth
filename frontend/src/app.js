@@ -851,15 +851,18 @@ function finalizePrint(canvas, frameColor) {
         }, 100);
     }
     
-    // Single source of truth for saving (Syncs to Local + Cloud)
-    savePrintToDatabase(dataUrl);
+    // 1. Immediate Local Save (Source of Truth for Gallery)
+    savePrintLocally(dataUrl);
     
-    // Manual trigger for gallery update in background
+    // 2. Background Cloud Sync (Non-blocking)
+    savePrintToDatabase(dataUrl, true); // Added 'isAlreadyLocal' flag to avoid double-saving locally
+    
+    // 3. Instant Gallery Refresh (Force-update cache)
     if (window.loadRecentPrints) {
-        setTimeout(() => window.loadRecentPrints(), 500);
+        window.loadRecentPrints();
     }
     
-    showToast("Masterpiece captured! ✨", "success");
+    showToast("Masterpiece saved to your Gallery! ✨", "success");
 }
 
 /** Save a print to localStorage immediately (max 3 kept) */
@@ -882,22 +885,27 @@ function savePrintLocally(dataUrl) {
     }
 }
 
-async function savePrintToDatabase(dataUrl) {
-    // 1. Save locally first — this is the source of truth for the gallery
-    savePrintLocally(dataUrl);
+async function savePrintToDatabase(dataUrl, isAlreadyLocal = false) {
+    // 1. Save locally first if not already done
+    if (!isAlreadyLocal) savePrintLocally(dataUrl);
     
-    // 2. Silently try to sync with backend (non-blocking)
-    if (!currentUser) return;
+    // 2. Silently try to sync with Aiven PostgreSQL
+    if (!currentUser || !dataUrl) return;
     try {
         const token = await currentUser.getIdToken();
-        await fetch(`${API_BASE_URL}/api/prints/save`, {
+        const response = await fetch(`${API_BASE_URL}/api/prints/save`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ imageData: dataUrl })
         });
+        
+        if (response.ok) {
+            console.log("☁️ Masterpiece synced to Aiven Cloud");
+            // Optional: Re-fetch to get the official timestamp from DB
+            if (window.loadRecentPrints) window.loadRecentPrints();
+        }
     } catch(e) {
-        // Backend sync is best-effort — local save already succeeded
-        console.warn('Backend sync failed (local save is still good):', e);
+        console.warn('Cloud sync deferred (offline or server sleeping):', e);
     }
 }
 
