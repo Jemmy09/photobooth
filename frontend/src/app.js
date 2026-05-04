@@ -895,7 +895,7 @@ async function savePrintToDatabase(dataUrl) {
         });
         
         if (response.ok) {
-            console.log("☁️ Masterpiece saved to Aiven PostgreSQL");
+            console.log("☁️ Masterpiece saved to Lumina Cloud");
             if (window.loadRecentPrints) window.loadRecentPrints();
         } else {
             console.error("Cloud save rejected:", response.status);
@@ -985,7 +985,7 @@ window.loadRecentPrints = async () => {
     container.innerHTML = `
         <div style="min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
             <div class="loader-small"></div>
-            <p class="text-muted" style="font-size: 0.75rem; margin-top: 10px; font-weight: 600; letter-spacing: 0.05em;">FETCHING FROM AIVEN...</p>
+            <p class="text-muted" style="font-size: 0.75rem; margin-top: 10px; font-weight: 600; letter-spacing: 0.05em;">LOADING LUMINA...</p>
         </div>
     `;
 
@@ -1006,7 +1006,7 @@ window.loadRecentPrints = async () => {
         container.innerHTML = `
             <div id="recent-photos" style="min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 2px dashed var(--accent); border-radius: 16px; background: rgba(255,0,0,0.05); gap: 1rem;">
                 <p style="color: var(--accent); font-size: 0.85rem; font-weight: 700;">CLOUD SYNC ERROR</p>
-                <p class="text-muted" style="font-size: 0.7rem;">Check your connection to Aiven PostgreSQL</p>
+                <p class="text-muted" style="font-size: 0.7rem;">Check your connection to Lumina Cloud</p>
             </div>`;
     }
 };
@@ -1046,7 +1046,7 @@ window.deleteDirect = async (url) => {
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ imageData: url })
         });
-        showToast("Deleted from Aiven Cloud", "success");
+        showToast("Deleted from Lumina Cloud", "success");
         const modal = document.getElementById('print-viewer-modal');
         if (modal) modal.remove();
         loadRecentPrints();
