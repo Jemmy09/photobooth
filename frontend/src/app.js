@@ -1,5 +1,5 @@
 /** 
- * PhotoBooth Engine v1.4.0 STABLE
+ * Lumina Engine v1.4.0 STABLE
  * Professional Filter System & Pro Controls
  */
 import './style.css';
@@ -30,6 +30,7 @@ let currentUser = null;
 let currentView = 'dashboard';
 let isCameraActive = false;
 let currentLens = 'none';
+let currentFacingMode = 'user';
 
 const LENSES = {
     none: { name: 'Normal', filter: 'none', icon: 'circle' },
@@ -55,7 +56,7 @@ function init() {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            console.log("🚀 PhotoBooth System — v1.4.0 STABLE — Authenticated & Active");
+            console.log("🚀 Lumina System — v1.4.0 STABLE — Authenticated & Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             
@@ -187,6 +188,10 @@ function refreshIcons() {
 
 // --- Routing & Views ---
 function showView(view) {
+    if (currentView === 'camera' && view !== 'camera' && mediaStream) {
+        mediaStream.getTracks().forEach(track => track.stop());
+        isCameraActive = false;
+    }
     currentView = view;
     const template = document.getElementById(`view-${view}`);
     
@@ -215,6 +220,7 @@ function showView(view) {
         renderDynamicView(view);
     }
 }
+window.showView = showView;
 
 function renderDynamicView(view) {
     if (view === 'dashboard') {
@@ -248,14 +254,24 @@ function renderDynamicView(view) {
 async function startCamera() {
     const video = document.getElementById('video');
     try {
-        const stream = await navigator.mediaDevices.getUserMedia({ 
+        if (mediaStream) {
+            mediaStream.getTracks().forEach(track => track.stop());
+        }
+        mediaStream = await navigator.mediaDevices.getUserMedia({ 
             video: { 
-                facingMode: 'user',
+                facingMode: currentFacingMode,
                 width: { ideal: 1280 },
                 height: { ideal: 720 }
             } 
         });
-        video.srcObject = stream;
+        video.srcObject = mediaStream;
+        
+        if (currentFacingMode === 'user') {
+            video.style.transform = 'scaleX(-1)';
+        } else {
+            video.style.transform = 'scaleX(1)';
+        }
+        
         isCameraActive = true;
         applyLens(currentLens);
         renderLensBar();
@@ -269,6 +285,11 @@ async function startCamera() {
         showView('dashboard');
     }
 }
+
+window.toggleCamera = () => {
+    currentFacingMode = currentFacingMode === 'user' ? 'environment' : 'user';
+    startCamera();
+};
 
 window.toggleLensBar = () => {
     const lb = document.getElementById('lens-bar-container');
@@ -338,9 +359,11 @@ async function captureImage() {
     // Apply Lens to Canvas
     ctx.filter = LENSES[currentLens].filter;
     
-    // Flip horizontal for natural look
-    ctx.translate(canvas.width, 0);
-    ctx.scale(-1, 1);
+    // Flip horizontal for natural look only for front camera
+    if (currentFacingMode === 'user') {
+        ctx.translate(canvas.width, 0);
+        ctx.scale(-1, 1);
+    }
     
     ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL('image/png');
@@ -640,8 +663,8 @@ async function sharePrint(dataUrl) {
         if (navigator.share) {
             await navigator.share({
                 files: [file],
-                title: 'PhotoBooth Capture',
-                text: 'Check out our photobooth session!'
+                title: 'Lumina Capture',
+                text: 'Check out our Lumina session!'
             });
         } else {
             showToast("Sharing not supported on this browser", "info");
@@ -1120,7 +1143,7 @@ async function initNotifications() {
             
             if (n.type === 'booth_invite') {
                 const data = JSON.parse(n.data || '{}');
-                messageText = `invited you to a PhotoBooth session!`;
+                messageText = `invited you to a Lumina session!`;
                 actionHtml = `
                     <div style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
                         <button onclick="respondInvite(${data.sessionId}, 'accept', this)" class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.8rem; border-radius: 10px;">Accept</button>
@@ -1615,5 +1638,5 @@ window.handleLogout = async () => {
 
 // DUPLICATES REMOVED - EOF
 // Initialized
-console.log("✨ PhotoBooth System — Fully Operational");
+console.log("✨ Lumina System — Fully Operational");
 init();
