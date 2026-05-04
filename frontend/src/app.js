@@ -851,34 +851,34 @@ function finalizePrint(canvas, frameColor) {
         }, 100);
     }
     
-    // Single source of truth for saving
+    // Single source of truth for saving (Syncs to Local + Cloud)
     savePrintToDatabase(dataUrl);
     
-    // Switch to dashboard immediately to see the result
-    setTimeout(() => {
-        showView('dashboard');
-    }, 2000);
+    // Manual trigger for gallery update in background
+    if (window.loadRecentPrints) {
+        setTimeout(() => window.loadRecentPrints(), 500);
+    }
     
     showToast("Masterpiece captured! ✨", "success");
 }
 
 /** Save a print to localStorage immediately (max 3 kept) */
 function savePrintLocally(dataUrl) {
+    if (!dataUrl) return;
     try {
         const key = 'recent_prints';
         const existing = JSON.parse(localStorage.getItem(key) || '[]');
         const newPrint = { url: dataUrl, timestamp: Date.now() };
         
-        // Keep max 12 locally to prevent QuotaExceededError (5MB limit)
-        const updated = [newPrint, ...existing].slice(0, 12);
+        // Safety: Keep max 10 high-res strips locally to avoid 5MB quota limits
+        const updated = [newPrint, ...existing.filter(p => p.url !== dataUrl)].slice(0, 10);
         localStorage.setItem(key, JSON.stringify(updated));
-        console.log("💾 Masterpiece saved locally");
+        console.log("💾 Masterpiece cached locally");
     } catch (e) {
-        console.error('Local storage limit reached. Purging old captures...', e);
-        // Emergency purge if full
+        console.warn('Local storage full. Purging half to make room...', e);
         const key = 'recent_prints';
         const existing = JSON.parse(localStorage.getItem(key) || '[]');
-        localStorage.setItem(key, JSON.stringify(existing.slice(0, 3)));
+        localStorage.setItem(key, JSON.stringify(existing.slice(0, 5)));
     }
 }
 
