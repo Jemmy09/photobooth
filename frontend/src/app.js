@@ -313,7 +313,7 @@ window.applyLens = (lensKey) => {
         const isActive = item.dataset.lens === lensKey;
         item.style.borderColor = isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)';
         item.style.transform = isActive ? 'scale(1.1)' : 'scale(1)';
-        item.style.background = isActive ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255,255,255,0.05)';
+        item.style.background = isActive ? 'rgba(255, 107, 43, 0.15)' : 'rgba(255,255,255,0.05)';
         
         const label = item.querySelector('span');
         if (label) label.style.color = isActive ? 'white' : 'var(--text-muted)';
@@ -328,7 +328,7 @@ function renderLensBar() {
         const lens = LENSES[key];
         const isActive = key === currentLens;
         return `
-            <div class="lens-item flex-center" data-lens="${key}" onclick="applyLens('${key}')" style="flex: 0 0 auto; width: 72px; height: 72px; border-radius: 50%; background: ${isActive ? 'rgba(99, 102, 241, 0.2)' : 'rgba(255,255,255,0.05)'}; border: 3px solid ${isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); flex-direction: column; gap: 4px; box-shadow: ${isActive ? '0 0 20px var(--primary-glow)' : 'none'};">
+            <div class="lens-item flex-center" data-lens="${key}" onclick="applyLens('${key}')" style="flex: 0 0 auto; width: 72px; height: 72px; border-radius: 50%; background: ${isActive ? 'rgba(255, 107, 43, 0.15)' : 'rgba(255,255,255,0.05)'}; border: 3px solid ${isActive ? 'var(--primary)' : 'rgba(255,255,255,0.1)'}; cursor: pointer; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); flex-direction: column; gap: 4px; box-shadow: ${isActive ? '0 0 20px var(--primary-glow)' : 'none'};">
                 <i data-lucide="${lens.icon}" style="width: 22px; height: 22px; color: ${isActive ? 'white' : 'var(--text-muted)'};"></i>
                 <span style="font-size: 0.65rem; font-weight: 800; text-transform: uppercase; color: ${isActive ? 'white' : 'var(--text-muted)'};">${lens.name}</span>
             </div>
@@ -949,15 +949,15 @@ function renderFriendsList(friends) {
         // Calculate Online Status (Active in last 5 mins)
         const isOnline = f.last_seen && (new Date() - new Date(f.last_seen)) < 300000;
         const statusBadge = isOnline 
-            ? `<span style="color: #10b981; font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; gap: 4px;"><span style="width: 6px; height: 6px; background: #10b981; border-radius: 50%;"></span> Online</span>`
+            ? `<span style="color: var(--secondary); font-size: 0.7rem; font-weight: 700; display: flex; align-items: center; gap: 4px;"><span style="width: 6px; height: 6px; background: var(--secondary); border-radius: 50%;"></span> Online</span>`
             : `<span style="color: var(--text-muted); font-size: 0.7rem; font-weight: 600;">Offline</span>`;
 
         return `
-        <div class="glass-card fade-in" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-left: 4px solid ${isOnline ? '#10b981' : 'var(--glass-border)'};">
+        <div class="glass-card fade-in" style="display: flex; align-items: center; justify-content: space-between; padding: 1rem; border-left: 4px solid ${isOnline ? 'var(--secondary)' : 'var(--glass-border)'};">
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <div style="position: relative;">
                     ${avatarHtml}
-                    ${isOnline ? `<div style="position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; background: #10b981; border-radius: 50%; border: 2px solid var(--bg-dark);"></div>` : ''}
+                    ${isOnline ? `<div style="position: absolute; bottom: -2px; right: -2px; width: 12px; height: 12px; background: var(--secondary); border-radius: 50%; border: 2px solid var(--bg-dark);"></div>` : ''}
                 </div>
                 <div>
                     <p style="font-weight: 700; margin: 0; font-size: 1rem;">${f.display_name || 'Anonymous'}</p>
@@ -993,7 +993,7 @@ function renderMiniFriendsList(friends) {
                     ? `<img src="${f.photo_url}" style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--primary); padding: 2px; object-fit: cover;">`
                     : `<div style="width: 60px; height: 60px; border-radius: 50%; border: 3px solid var(--primary); background: ${avatarBg}; display: flex; align-items: center; justify-content: center; color: var(--text-muted);"><i data-lucide="user" style="width: 24px; height: 24px;"></i></div>`
                 }
-                <div style="position: absolute; bottom: 2px; right: 2px; width: 14px; height: 14px; background: #10b981; border-radius: 50%; border: 2px solid var(--bg-dark);"></div>
+                <div style="position: absolute; bottom: 2px; right: 2px; width: 14px; height: 14px; background: var(--secondary); border-radius: 50%; border: 2px solid var(--bg-dark);"></div>
             </div>
             <span style="font-size: 0.8rem; font-weight: 500;">${(f.display_name || 'User').split(' ')[0]}</span>
         </div>
@@ -1083,7 +1083,7 @@ function renderSearchResults(users) {
         } else if (u.received_status === 'pending') {
             btnHtml = `<button onclick="respondFollowRequest('${u.uid}', 'accept', this)" class="btn btn-primary" style="padding: 0.6rem 1.2rem; border-radius: 12px; font-size: 0.85rem;">Accept Friend</button>`;
         } else if (u.sent_status === 'accepted' || u.received_status === 'accepted') {
-            btnHtml = `<div style="display: flex; align-items: center; gap: 0.5rem; color: #10b981; font-weight: 600; font-size: 0.85rem;"><i data-lucide="check-circle-2" style="width: 16px;"></i> Friends</div>`;
+            btnHtml = `<div style="display: flex; align-items: center; gap: 0.5rem; color: var(--secondary); font-weight: 600; font-size: 0.85rem;"><i data-lucide="check-circle-2" style="width: 16px;"></i> Friends</div>`;
         }
 
         const avatarBg = `hsl(${Math.abs(u.uid.charCodeAt(0) * 37) % 360}, 30%, 20%)`;
@@ -1522,14 +1522,14 @@ function showToast(message, type = 'info') {
         gap: 0.75rem;
         font-weight: 500;
         font-size: 0.9rem;
-        border-left: 4px solid ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : 'var(--primary)'};
+        border-left: 4px solid ${type === 'success' ? 'var(--secondary)' : type === 'error' ? '#ef4444' : 'var(--primary)'};
         pointer-events: auto;
         min-width: 200px;
     `;
 
     const icon = type === 'success' ? 'check-circle' : type === 'error' ? 'alert-circle' : 'info';
     toast.innerHTML = `
-        <i data-lucide="${icon}" style="width: 18px; color: ${type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : 'var(--primary)'};"></i>
+        <i data-lucide="${icon}" style="width: 18px; color: ${type === 'success' ? 'var(--secondary)' : type === 'error' ? '#ef4444' : 'var(--primary)'};"></i>
         <span>${message}</span>
     `;
 
