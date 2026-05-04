@@ -51,14 +51,26 @@ Because Lumina runs on an independent Aiven PostgreSQL database with limited sto
 
 ---
 
-## 🛠️ The Technology Stack
+## 🛠️ What Was Used to Build Lumina?
 
-Lumina is built with a practical, full-stack architecture:
+To build Lumina, we used a practical mix of true programming languages, structure/design languages, and cloud platforms.
 
-*   **Frontend:** Vanilla JavaScript, HTML, and CSS built with **Vite**. Hosted statically on **GitHub Pages**.
-*   **Backend:** Node.js and Express API, deployed via **Render**.
-*   **Database:** **Aiven PostgreSQL** handles all relational data including user profiles, friend connections, and temporary image storage.
-*   **Authentication:** **Firebase Auth** manages secure login sessions.
+### 🧠 Programming Languages (The Logic)
+*   **JavaScript (JS):** Used heavily on both the Frontend (to run the camera, UI, and browser logic) and the Backend (running via Node.js to handle APIs and database connections).
+*   **SQL (Structured Query Language):** Used on the backend to talk to the database (inserting, finding, and deleting photos and profiles).
+
+### 🎨 Structure & Design (Not Programming)
+*   **HTML (HyperText Markup Language):** The skeleton of the website (buttons, text boxes, and image layouts).
+*   **CSS (Cascading Style Sheets):** Used purely for design, giving Lumina its custom tangerine and mint color theme.
+*   **JSON & Markdown:** Used for data configurations (`package.json`) and documentation (`README.md`).
+
+### ☁️ Tools & Cloud Platforms
+*   **Vite:** A build tool that bundles all our frontend files and makes the website load as fast as possible.
+*   **Node.js:** Allows JavaScript to run on the backend server.
+*   **Firebase:** Handles secure user authentication (Google & Email Login).
+*   **Aiven PostgreSQL:** Hosts the relational database in the cloud.
+*   **Render:** Hosts and runs the backend logic 24/7.
+*   **GitHub Pages:** Hosts the bundled frontend files.
 
 ---
 
