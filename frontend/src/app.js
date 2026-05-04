@@ -1,5 +1,5 @@
 /** 
- * Lumina Engine v1.5.3 STABLE
+ * Lumina Engine v1.5.4 STABLE
  * Professional Filter System & Pro Controls
  */
 import './style.css';
@@ -58,7 +58,7 @@ function init() {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            console.log("🚀 Lumina System — v1.5.3 STABLE — Authenticated & Active");
+            console.log("🚀 Lumina System — v1.5.4 STABLE — Authenticated & Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             
