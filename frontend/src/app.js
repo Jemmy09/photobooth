@@ -33,6 +33,7 @@ let currentLens = 'none';
 let currentFacingMode = 'user';
 let isModelsLoaded = false;
 let detectionInterval = null;
+let lastDetectedFace = null; // Store for Smart Bokeh
 
 const LENSES = {
     none: { name: 'Normal', filter: 'none', icon: 'circle' },
@@ -310,6 +311,7 @@ async function startFaceDetection() {
         
         if (detections.length > 0) {
             updateFaceStatus('detecting');
+            lastDetectedFace = resizedDetections[0].box; // Capture for Smart Bokeh
             resizedDetections.forEach(det => {
                 const { x, y, width, height } = det.box;
                 ctx.strokeStyle = '#00D68F';
@@ -525,7 +527,24 @@ async function captureImage() {
         // 2. Sharp Center (Portrait)
         ctx.save();
         ctx.beginPath();
-        ctx.ellipse(canvas.width / 2, canvas.height / 2, canvas.width / 2.5, canvas.height / 1.8, 0, 0, Math.PI * 2);
+        
+        // SMART BOKEH: Center on face if detected, else use frame center
+        let centerX = canvas.width / 2;
+        let centerY = canvas.height / 2;
+        let focusW = canvas.width / 2.5;
+        let focusH = canvas.height / 1.8;
+
+        if (lastDetectedFace) {
+            // Map face box to canvas center
+            centerX = lastDetectedFace.x + (lastDetectedFace.width / 2);
+            centerY = lastDetectedFace.y + (lastDetectedFace.height / 2);
+            
+            // Adjust focus size to face size with buffer
+            focusW = lastDetectedFace.width * 1.2;
+            focusH = lastDetectedFace.height * 1.5;
+        }
+
+        ctx.ellipse(centerX, centerY, focusW, focusH, 0, 0, Math.PI * 2);
         ctx.clip();
         drawFrame(lens.filter);
         ctx.restore();
