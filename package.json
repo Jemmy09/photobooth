@@ -1,6 +1,6 @@
 {
   "name": "photobooth-monorepo",
-  "version": "1.5.6",
+  "version": "1.6.0",
   "private": true,
   "description": "Lumina Full-Stack Monorepo",
   "workspaces": [

@@ -1,6 +1,6 @@
 {
   "name": "photobooth-backend",
-  "version": "1.5.6",
+  "version": "1.6.0",
   "description": "API for Lumina with Aiven PostgreSQL and Firebase Auth",
   "main": "server.js",
   "scripts": {
