@@ -31,6 +31,8 @@ let currentView = 'dashboard';
 let isCameraActive = false;
 let currentLens = 'none';
 let currentFacingMode = 'user';
+let isModelsLoaded = false;
+let detectionInterval = null;
 
 const LENSES = {
     none: { name: 'Normal', filter: 'none', icon: 'circle' },
@@ -63,6 +65,7 @@ function init() {
             console.log("🚀 Lumina System — v1.6.1 STABLE — Authenticated & Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
+            loadModels(); // Initialize Face Recognition Models
             
             // Stay active heartbeat
             if (!window.appHeartbeat) {
@@ -194,6 +197,7 @@ function refreshIcons() {
 function showView(view) {
     if (currentView === 'camera' && view !== 'camera' && mediaStream) {
         mediaStream.getTracks().forEach(track => track.stop());
+        stopFaceDetection();
         isCameraActive = false;
     }
     currentView = view;
@@ -253,6 +257,99 @@ function renderDynamicView(view) {
     refreshIcons();
 }
 
+// --- Face Recognition Logic ---
+async function loadModels() {
+    try {
+        const MODEL_URL = '/models';
+        await faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL);
+        isModelsLoaded = true;
+        console.log("🤖 Lumina AI — Face Models Loaded");
+        updateFaceStatus('ready');
+    } catch (err) {
+        console.error("❌ Lumina AI — Model Load Error:", err);
+        updateFaceStatus('error');
+    }
+}
+
+function updateFaceStatus(status) {
+    const indicator = document.getElementById('face-indicator');
+    const label = document.querySelector('#face-status span');
+    if (!indicator || !label) return;
+
+    if (status === 'ready') {
+        indicator.style.background = '#00D68F';
+        label.innerText = 'System Active';
+    } else if (status === 'detecting') {
+        indicator.style.background = '#FF6B2B';
+        label.innerText = 'Face Recognized';
+    } else if (status === 'searching') {
+        indicator.style.background = 'rgba(255,255,255,0.2)';
+        label.innerText = 'Searching Face...';
+    } else if (status === 'error') {
+        indicator.style.background = '#ff4757';
+        label.innerText = 'System Offline';
+    }
+}
+
+async function startFaceDetection() {
+    if (!isModelsLoaded) return;
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('detection-canvas');
+    if (!video || !canvas) return;
+
+    const displaySize = { width: video.offsetWidth, height: video.offsetHeight };
+    faceapi.matchDimensions(canvas, displaySize);
+
+    detectionInterval = setInterval(async () => {
+        if (!isCameraActive) return;
+        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
+        const resizedDetections = faceapi.resizeResults(detections, displaySize);
+        
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        if (detections.length > 0) {
+            updateFaceStatus('detecting');
+            resizedDetections.forEach(det => {
+                const { x, y, width, height } = det.box;
+                ctx.strokeStyle = '#00D68F';
+                ctx.lineWidth = 2;
+                
+                // Professional Focus Frame
+                ctx.setLineDash([5, 5]);
+                ctx.strokeRect(x, y, width, height);
+                
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                const l = 20;
+                // TL
+                ctx.moveTo(x, y+l); ctx.lineTo(x, y); ctx.lineTo(x+l, y);
+                // TR
+                ctx.moveTo(x+width-l, y); ctx.lineTo(x+width, y); ctx.lineTo(x+width, y+l);
+                // BR
+                ctx.moveTo(x+width, y+height-l); ctx.lineTo(x+width, y+height); ctx.lineTo(x+width-l, y+height);
+                // BL
+                ctx.moveTo(x+l, y+height); ctx.lineTo(x, y+height); ctx.lineTo(x, y+height-l);
+                ctx.stroke();
+            });
+        } else {
+            updateFaceStatus('searching');
+        }
+    }, 250);
+}
+
+function stopFaceDetection() {
+    if (detectionInterval) {
+        clearInterval(detectionInterval);
+        detectionInterval = null;
+    }
+    const canvas = document.getElementById('detection-canvas');
+    if (canvas) {
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
 // --- View Logic ---
 
 async function startCamera() {
@@ -269,6 +366,11 @@ async function startCamera() {
             } 
         });
         video.srcObject = mediaStream;
+        
+        video.onloadedmetadata = () => {
+            applyLens(currentLens);
+            startFaceDetection();
+        };
         
         if (currentFacingMode === 'user') {
             video.style.transform = 'scaleX(-1)';
