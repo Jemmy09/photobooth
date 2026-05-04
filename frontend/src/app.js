@@ -315,46 +315,63 @@ async function startFaceDetection() {
     const canvas = document.getElementById('detection-canvas');
     if (!video || !canvas) return;
 
+    // Ensure video is ready before starting
+    if (video.readyState < 2) {
+        video.addEventListener('loadeddata', () => startFaceDetection(), { once: true });
+        return;
+    }
+
     const displaySize = { width: video.offsetWidth, height: video.offsetHeight };
     faceapi.matchDimensions(canvas, displaySize);
 
+    if (detectionInterval) clearInterval(detectionInterval);
+
     detectionInterval = setInterval(async () => {
-        if (!isCameraActive) return;
-        const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions());
-        const resizedDetections = faceapi.resizeResults(detections, displaySize);
-        
-        const ctx = canvas.getContext('2d');
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        
-        if (detections.length > 0) {
-            updateFaceStatus('detecting');
-            lastDetectedFace = resizedDetections[0].box; // Capture for Smart Bokeh
-            resizedDetections.forEach(det => {
-                const { x, y, width, height } = det.box;
-                ctx.strokeStyle = '#00D68F';
-                ctx.lineWidth = 2;
-                
-                // Professional Focus Frame
-                ctx.setLineDash([5, 5]);
-                ctx.strokeRect(x, y, width, height);
-                
-                ctx.setLineDash([]);
-                ctx.beginPath();
-                const l = 20;
-                // TL
-                ctx.moveTo(x, y+l); ctx.lineTo(x, y); ctx.lineTo(x+l, y);
-                // TR
-                ctx.moveTo(x+width-l, y); ctx.lineTo(x+width, y); ctx.lineTo(x+width, y+l);
-                // BR
-                ctx.moveTo(x+width, y+height-l); ctx.lineTo(x+width, y+height); ctx.lineTo(x+width-l, y+height);
-                // BL
-                ctx.moveTo(x+l, y+height); ctx.lineTo(x, y+height); ctx.lineTo(x, y+height-l);
-                ctx.stroke();
-            });
-        } else {
-            updateFaceStatus('searching');
+        if (!isCameraActive || video.paused || video.ended) {
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            return;
         }
-    }, 250);
+
+        try {
+            const detections = await faceapi.detectAllFaces(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.5 }));
+            const resizedDetections = faceapi.resizeResults(detections, displaySize);
+            
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            if (detections.length > 0) {
+                updateFaceStatus('detecting');
+                lastDetectedFace = resizedDetections[0].box;
+                
+                resizedDetections.forEach(det => {
+                    const { x, y, width, height } = det.box;
+                    
+                    // Professional Studio Focus Brackets
+                    ctx.strokeStyle = '#00D68F';
+                    ctx.lineWidth = 3;
+                    ctx.lineCap = 'round';
+                    const l = Math.min(width, height) * 0.15;
+                    
+                    ctx.beginPath();
+                    // TL
+                    ctx.moveTo(x, y + l); ctx.lineTo(x, y); ctx.lineTo(x + l, y);
+                    // TR
+                    ctx.moveTo(x + width - l, y); ctx.lineTo(x + width, y); ctx.lineTo(x + width, y + l);
+                    // BR
+                    ctx.moveTo(x + width, y + height - l); ctx.lineTo(x + width, y + height); ctx.lineTo(x + width - l, y + height);
+                    // BL
+                    ctx.moveTo(x + l, y + height); ctx.lineTo(x, y + height); ctx.lineTo(x, y + height - l);
+                    ctx.stroke();
+                });
+            } else {
+                updateFaceStatus('ready');
+                lastDetectedFace = null;
+            }
+        } catch (e) {
+            console.warn("Detection pause/skip:", e);
+        }
+    }, 150);
 }
 
 function stopFaceDetection() {
