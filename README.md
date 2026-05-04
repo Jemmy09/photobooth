@@ -128,6 +128,7 @@ lumina/
 
 | Version | Notes |
 |---|---|
+| **v1.5.3** | **STABLE** — Account & Gallery Deletion Logic, Modal Routing Fixes, Legal Policies |
 | **v1.5.0** | **STABLE** — Offline-first Gallery, Aiven DB Sync, 3-day Auto-Purge, new Custom Favicon |
 | **v1.4.0** | Lumina rebrand, tangerine × mint design system, camera flip fix, functional Studio back button |
 | **v1.3.5** | Notification controls, dashboard gallery optimization |
