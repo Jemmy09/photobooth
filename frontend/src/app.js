@@ -1,5 +1,5 @@
 /** 
- * Lumina Engine v1.5.7 STABLE
+ * Lumina Engine v1.5.8 STABLE
  * Professional Filter System & Pro Controls
  */
 import './style.css';
@@ -61,7 +61,7 @@ function init() {
     auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-            console.log("🚀 Lumina System — v1.5.7 STABLE — Authenticated & Active");
+            console.log("🚀 Lumina System — v1.5.8 STABLE — Authenticated & Active");
             syncProfile(user);
             fetchNotifications(); // Initial check
             
@@ -427,19 +427,16 @@ async function captureImage() {
     if (lens.puppy) {
         const puppyImg = document.getElementById('puppy-overlay');
         if (puppyImg && puppyImg.complete) {
-            // Draw overlay on top of the sharp image
-            // We need to account for scale/translation
             ctx.save();
-            // Puppy filter should NOT be flipped back if we already flipped the canvas for user mode
-            // because the overlay is already designed for the screen view
-            // But wait, ctx.drawImage uses current transformation matrix.
-            // If we are in user mode, the canvas is flipped.
-            // If the overlay image is symmetrical, it's fine. If not, we might need to flip it back.
-            // Usually, static overlays should stay relative to the screen.
-            
-            // To keep it simple: Reset transformation to draw the overlay normally on top
             ctx.setTransform(1, 0, 0, 1, 0, 0); 
-            ctx.drawImage(puppyImg, 0, -canvas.height * 0.05, canvas.width, canvas.height);
+            ctx.globalCompositeOperation = 'screen';
+            
+            const pW = canvas.width * 0.9;
+            const pH = canvas.height * 0.9;
+            const pX = (canvas.width - pW) / 2;
+            const pY = ((canvas.height - pH) / 2) - (canvas.height * 0.12);
+            
+            ctx.drawImage(puppyImg, pX, pY, pW, pH);
             ctx.restore();
         }
     }
