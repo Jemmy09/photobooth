@@ -600,7 +600,16 @@ window.handleCapture = async () => {
         white: '#ffffff',
         black: '#0f172a',
         pink: '#fce7f3',
-        gold: '#fbbf24'
+        gold: '#fbbf24',
+        heart: '#ff85a1',
+        film: '#1a1a1a',
+        birthday: '#ff9ff3',
+        mlbb: '#1e3799',
+        halloween: '#e67e22',
+        christmas: '#27ae60',
+        valentines: '#c0392b',
+        un: '#2980b9',
+        insideout: '#ffffff' // Handled by pattern
     };
     
     generatePrint(shots, mode, colorMap[frameColor] || '#ffffff');
@@ -706,61 +715,100 @@ function generatePrint(shots, mode, frameColor) {
     
     showToast("Generating your masterpiece... ✨", "info");
 
+    // 1. Set Canvas Size based on Mode
     if (mode === 'strip') {
-        // Vertical Strip
         canvas.width = 400;
         canvas.height = 1200;
-        ctx.fillStyle = frameColor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        let loaded = 0;
-        shots.forEach((p, i) => {
-            const img = new Image();
-            img.src = p;
-            img.onload = () => {
-                ctx.drawImage(img, 20, 20 + (i * 290), 360, 270);
-                loaded++;
-                if (loaded === 4) finalizePrint(canvas, frameColor);
-            };
-        });
     } else if (mode === 'horizontal') {
-        // Cinema Horizontal (4 side by side)
         canvas.width = 1200;
         canvas.height = 400;
-        ctx.fillStyle = frameColor;
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        let loaded = 0;
-        shots.forEach((p, i) => {
-            const img = new Image();
-            img.src = p;
-            img.onload = () => {
-                ctx.drawImage(img, 20 + (i * 290), 20, 270, 360);
-                loaded++;
-                if (loaded === 4) finalizePrint(canvas, frameColor);
-            };
-        });
     } else {
-        // Postcard (800x600)
         canvas.width = 800;
         canvas.height = 600;
-        ctx.fillStyle = frameColor;
+    }
+
+    // 2. Draw THEMED BACKGROUNDS
+    if (frameColor === 'heart') {
+        ctx.fillStyle = '#ff85a1';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
-        let loaded = 0;
-        shots.forEach((p, i) => {
-            const img = new Image();
-            img.src = p;
-            img.onload = () => {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
+        for (let i = 0; i < 50; i++) {
+            ctx.font = '20px serif';
+            ctx.fillText('❤️', Math.random() * canvas.width, Math.random() * canvas.height);
+        }
+    } else if (frameColor === 'film') {
+        ctx.fillStyle = '#1a1a1a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = 'white';
+        for (let i = 0; i < canvas.height; i += 40) {
+            ctx.fillRect(5, i + 10, 10, 20); // Left sprockets
+            ctx.fillRect(canvas.width - 15, i + 10, 10, 20); // Right sprockets
+        }
+    } else if (frameColor === 'insideout') {
+        const colors = ['#f7d02c', '#1d4fb3', '#e22d25', '#b71d9d', '#2fb24b']; // Joy, Sadness, Anger, Fear, Disgust
+        const stripeW = canvas.width / colors.length;
+        colors.forEach((c, idx) => {
+            ctx.fillStyle = c;
+            ctx.fillRect(idx * stripeW, 0, stripeW, canvas.height);
+        });
+    } else if (frameColor === 'mlbb') {
+        const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+        grad.addColorStop(0, '#1e3799');
+        grad.addColorStop(1, '#0c2461');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.strokeStyle = '#f9ca24';
+        ctx.lineWidth = 15;
+        ctx.strokeRect(7, 7, canvas.width - 14, canvas.height - 14);
+    } else {
+        ctx.fillStyle = colorMap[frameColor] || '#ffffff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+    
+    // Add text for specific themes
+    ctx.textAlign = 'center';
+    if (frameColor === 'birthday') {
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 30px Outfit';
+        ctx.fillText('HAPPY BIRTHDAY! 🎂', canvas.width / 2, canvas.height - 20);
+    } else if (frameColor === 'halloween') {
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 30px Outfit';
+        ctx.fillText('SPOOKY NIGHT 🎃', canvas.width / 2, canvas.height - 20);
+    } else if (frameColor === 'christmas') {
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 30px Outfit';
+        ctx.fillText('MERRY CHRISTMAS 🎄', canvas.width / 2, canvas.height - 20);
+    } else if (frameColor === 'valentines') {
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 30px Outfit';
+        ctx.fillText('BE MINE ❤️', canvas.width / 2, canvas.height - 20);
+    } else if (frameColor === 'un') {
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 30px Outfit';
+        ctx.fillText('UNITED NATIONS 🌍', canvas.width / 2, canvas.height - 20);
+    }
+
+    // 3. Draw Shots
+    let loaded = 0;
+    shots.forEach((p, i) => {
+        const img = new Image();
+        img.src = p;
+        img.onload = () => {
+            if (mode === 'strip') {
+                ctx.drawImage(img, 20, 20 + (i * 290), 360, 270);
+            } else if (mode === 'horizontal') {
+                ctx.drawImage(img, 20 + (i * 290), 20, 270, 360);
+            } else {
                 const cols = 2;
                 const x = (i % cols) * 390 + 10;
                 const y = Math.floor(i / cols) * 290 + 10;
                 ctx.drawImage(img, x, y, 380, 280);
-                loaded++;
-                if (loaded === 4) finalizePrint(canvas, frameColor);
-            };
-        });
-    }
+            }
+            loaded++;
+            if (loaded === 4) finalizePrint(canvas, frameColor);
+        };
+    });
 }
 
 function finalizePrint(canvas, frameColor) {
